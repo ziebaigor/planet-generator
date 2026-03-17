@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://dpnigd2lqwehr"]
+
+[ext_resource type="Script" uid="uid://bxf4yanf8aprf" path="res://scripts/marching_cubes/marching_cubes.gd" id="1_1odxm"]
+[ext_resource type="Resource" uid="uid://dguucmeg0vqmj" path="res://res/PlanetGenerator1.tres" id="2_ywwu5"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_m5mx5"]
+
+[node name="MarchingCubes" type="Node3D" unique_id=739817206]
+script = ExtResource("1_1odxm")
+density_generator = ExtResource("2_ywwu5")
+
+[node name="CORE" type="MeshInstance3D" parent="." unique_id=1086177267]
+visible = false
+mesh = SubResource("SphereMesh_m5mx5")
+
+[node name="Chunks" type="Node3D" parent="." unique_id=1967851924]
