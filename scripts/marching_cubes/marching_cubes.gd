@@ -5,9 +5,12 @@ extends Node3D
 @export var chunk_size := 20
 @export var chunks := Vector3i(5,5,5)
 @export var density_generator : DensityGenerator = PlanetDensityGenerator.new()
+@export var gravity_radius_multiplier : float = 1.5
+@export var gravity_strength : float = 20.0
 
 var mesh_generator := MarchingCubesMeshGenerator.new()
 @onready var chunks_parent : Node3D = $Chunks
+@onready var gravity_shape : CollisionShape3D = $GravityZone/CollisionShape3D
 
 
 func _ready() -> void:
@@ -15,6 +18,26 @@ func _ready() -> void:
 	density_generator.initialize()
 	
 	regenerate_mesh()
+	_update_gravity_radius()
+
+func _update_gravity_radius() -> void:
+	# Get PlanetDensityGenerator base_radius value and set gravity zone radius
+	if density_generator is PlanetDensityGenerator:
+		var planet_radius : float = density_generator.base_radius
+		var sphere := SphereShape3D.new()
+		sphere.radius = planet_radius * gravity_radius_multiplier
+		gravity_shape.shape = sphere
+
+func get_gravity_vector(from_position: Vector3) -> Vector3:
+	return (global_position - from_position).normalized() * gravity_strength
+
+func _on_gravity_zone_body_entered(body: Node3D) -> void:
+	if body.has_method("set_gravity_source"):
+		body.set_gravity_source(self)
+
+func _on_gravity_zone_body_exited(body: Node3D) -> void:
+	if body.has_method("clear_gravity_source"):
+		body.clear_gravity_source(self)
 
 func regenerate_mesh() -> void:
 	# Delete old chunks

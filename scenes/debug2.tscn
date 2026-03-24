@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://bjinj44w1eg4n"]
+
+[ext_resource type="PackedScene" uid="uid://c02samnxbv0v1" path="res://scripts/player_controller/player_controller.tscn" id="2_h7y3g"]
+[ext_resource type="PackedScene" uid="uid://dpnigd2lqwehr" path="res://scripts/marching_cubes/marching_cubes.tscn" id="2_o3dua"]
+
+[sub_resource type="Environment" id="Environment_2g2bo"]
+ambient_light_source = 2
+ambient_light_color = Color(0.4506483, 0.4506483, 0.45064825, 1)
+ambient_light_energy = 0.2
+
+[node name="MAIN" type="Node3D" unique_id=1163576499]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=480301683]
+transform = Transform3D(0.98539007, 0.073149756, -0.15380353, 0.17031269, -0.42322767, 0.88987184, 0, -0.90306556, -0.4295027, 0, 25.477766, 44.385086)
+light_indirect_energy = 3.0
+light_angular_distance = 1.0
+
+[node name="MarchingCubes" parent="." unique_id=739817206 instance=ExtResource("2_o3dua")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -40)
+
+[node name="PlayerController" parent="." unique_id=64172110 instance=ExtResource("2_h7y3g")]
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=688381519]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=830633248]
+environment = SubResource("Environment_2g2bo")

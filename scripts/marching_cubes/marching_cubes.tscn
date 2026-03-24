@@ -5,6 +5,8 @@
 
 [sub_resource type="SphereMesh" id="SphereMesh_m5mx5"]
 
+[sub_resource type="SphereShape3D" id="SphereShape3D_am12k"]
+
 [node name="MarchingCubes" type="Node3D" unique_id=739817206]
 script = ExtResource("1_1odxm")
 density_generator = ExtResource("2_ywwu5")
@@ -14,3 +16,11 @@ visible = false
 mesh = SubResource("SphereMesh_m5mx5")
 
 [node name="Chunks" type="Node3D" parent="." unique_id=1967851924]
+
+[node name="GravityZone" type="Area3D" parent="." unique_id=456612296]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GravityZone" unique_id=1908804851]
+shape = SubResource("SphereShape3D_am12k")
+
+[connection signal="body_entered" from="GravityZone" to="." method="_on_gravity_zone_body_entered"]
+[connection signal="body_exited" from="GravityZone" to="." method="_on_gravity_zone_body_exited"]
