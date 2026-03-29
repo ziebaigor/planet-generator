@@ -5,14 +5,23 @@ extends Node3D
 @export var chunk_size := 20
 @export var chunks := Vector3i(5,5,5)
 @export var density_generator : DensityGenerator = PlanetDensityGenerator.new()
+@export var color_gradient : Gradient
 
 var mesh_generator := MarchingCubesMeshGenerator.new()
 @onready var chunks_parent : Node3D = $Chunks
 
+var mat := StandardMaterial3D.new()
+
 
 func _ready() -> void:
+	mat.vertex_color_use_as_albedo = true
+	
 	mesh_generator.density_generator = density_generator
 	density_generator.initialize()
+	
+	# TODO: Move into its own class
+	mesh_generator.color_gradient = color_gradient
+	mesh_generator.color_gradient_height = 40
 	
 	regenerate_mesh()
 
@@ -60,11 +69,15 @@ func _apply_chunk_mesh(chunk_coord : Vector3, arrays : Array) -> void:
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	new_chunk.mesh = mesh
 	
+	
 	# Collision 
 	var body := StaticBody3D.new()
 	new_chunk.add_child(body)
 	
 	var collision := CollisionShape3D.new()
 	body.add_child(collision)
-	
 	collision.shape = mesh.create_trimesh_shape()
+	
+	
+	# Material
+	new_chunk.mesh.surface_set_material(0, mat)
