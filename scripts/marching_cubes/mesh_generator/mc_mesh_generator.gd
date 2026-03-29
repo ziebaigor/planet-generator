@@ -4,9 +4,7 @@ extends RefCounted
 var density_generator : DensityGenerator = PlanetDensityGenerator.new()
 var iso_level := 0.0
 
-# Corresponds to the max height of the planet
-var color_gradient_height := 50
-var color_gradient : Gradient = Gradient.new()
+var color_generator : ColorGenerator = RadialColorGenerator.new()
 
 const CUBE_CORNERS : Array[Vector3] = [
 	Vector3i(0,0,0),
@@ -131,10 +129,5 @@ func _compute_normal(p: Vector3) -> Vector3:
 func _get_density(pos : Vector3) -> float:
 	return density_generator.get_density(pos)
 
-func _get_color(p : Vector3) -> Color:
-	var dist = p.length()
-	
-	# TODO: Curve
-	var t = remap(dist, 0.0, color_gradient_height, 0.0, 1.0)
-	
-	return color_gradient.sample(t)
+func _get_color(pos : Vector3) -> Color:
+	return color_generator.get_color(pos)
