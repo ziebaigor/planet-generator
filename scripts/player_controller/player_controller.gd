@@ -10,12 +10,22 @@ extends CharacterBody3D
 @onready var camera : Camera3D = $Camera3D
 var _camera_pitch : float = 0.0
 
+var gravity_sources: Array[Node3D] = []
 var gravity_source : Node3D = null
 var noclip : bool = false
 var _gravity_vec : Vector3 = Vector3.ZERO
 
+#TODO: Rewrite this script
+
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
+func add_gravity_source(source: Node3D) -> void:
+	if not source in gravity_sources:
+		gravity_sources.append(source)
+
+func remove_gravity_source(source: Node3D) -> void:
+	gravity_sources.erase(source)
 
 func set_gravity_source(planet: Node3D) -> void:
 	gravity_source = planet
