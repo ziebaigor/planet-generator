@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://t20gtfqc7oj1"]
+
+[ext_resource type="Script" uid="uid://b76un6eux5h1" path="res://scripts/misc/debug_cube.gd" id="1_3pa8f"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_bv80v"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_bv80v"]
+
+[node name="DebugCube" type="CharacterBody3D" unique_id=1739399568]
+script = ExtResource("1_3pa8f")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=2106928759]
+mesh = SubResource("BoxMesh_bv80v")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1163996254]
+shape = SubResource("BoxShape3D_bv80v")

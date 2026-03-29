@@ -56,6 +56,15 @@ func _apply_chunk_mesh(chunk_coord : Vector3, arrays : Array) -> void:
 	new_chunk.position = chunk_coord
 	chunks_parent.add_child(new_chunk)
 	
-	new_chunk.mesh = ArrayMesh.new()
-	new_chunk.mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	#new_chunk.material_override = mat
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	new_chunk.mesh = mesh
+	
+	# Collision 
+	var body := StaticBody3D.new()
+	new_chunk.add_child(body)
+	
+	var collision := CollisionShape3D.new()
+	body.add_child(collision)
+	
+	collision.shape = mesh.create_trimesh_shape()
