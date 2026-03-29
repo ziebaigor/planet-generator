@@ -4,6 +4,8 @@ extends RefCounted
 var density_generator : DensityGenerator = PlanetDensityGenerator.new()
 var iso_level := 0.0
 
+var color_generator : ColorGenerator = RadialColorGenerator.new()
+
 const CUBE_CORNERS : Array[Vector3] = [
 	Vector3i(0,0,0),
 	Vector3i(1,0,0),
@@ -20,12 +22,13 @@ func generate_mesh_arrays(chunk_origin : Vector3, size : int) -> Array:
 	var vertices : PackedVector3Array = []
 	var indices : PackedInt32Array = []
 	var normals : PackedVector3Array = []
+	var colors : PackedColorArray = []
 	
 	for x in range(size):
 		for y in range(size):
 			for z in range(size):
 				var world_pos = chunk_origin + Vector3(x, y, z)
-				_calculate_cube_verts(world_pos, chunk_origin, vertices, indices, normals)
+				_calculate_cube_verts(world_pos, chunk_origin, vertices, indices, normals, colors)
 	
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
@@ -33,6 +36,7 @@ func generate_mesh_arrays(chunk_origin : Vector3, size : int) -> Array:
 	arrays[Mesh.ARRAY_VERTEX] = vertices
 	arrays[Mesh.ARRAY_INDEX] = indices
 	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_COLOR] = colors
 	
 	return arrays
 
@@ -41,7 +45,8 @@ func _calculate_cube_verts(start_pos : Vector3,
 		chunk_origin : Vector3,
 		vertices : PackedVector3Array, 
 		indices : PackedInt32Array,
-		normals : PackedVector3Array) -> void:
+		normals : PackedVector3Array,
+		colors : PackedColorArray) -> void:
 	
 	var corner_positions = []
 	var corner_values = []
@@ -103,6 +108,10 @@ func _calculate_cube_verts(start_pos : Vector3,
 		normals.append(_compute_normal(v0))
 		normals.append(_compute_normal(v1))
 		normals.append(_compute_normal(v2))
+		
+		colors.append(_get_color(v0))
+		colors.append(_get_color(v1))
+		colors.append(_get_color(v2))
 
 
 
@@ -119,3 +128,6 @@ func _compute_normal(p: Vector3) -> Vector3:
 
 func _get_density(pos : Vector3) -> float:
 	return density_generator.get_density(pos)
+
+func _get_color(pos : Vector3) -> Color:
+	return color_generator.get_color(pos)

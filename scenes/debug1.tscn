@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://dpnigd2lqwehr" path="res://scripts/marching_cubes/marching_cubes.tscn" id="2_fmid0"]
 [ext_resource type="Script" uid="uid://c065syrqhvn8h" path="res://scripts/misc/debug_cube_spawner.gd" id="2_rtkrw"]
 [ext_resource type="Script" uid="uid://c67846kv4ncmj" path="res://scripts/marching_cubes/mesh_generator/density_generators/planet_v3_density_generator.gd" id="3_fmid0"]
+[ext_resource type="Script" uid="uid://dsi223361ju3h" path="res://scripts/marching_cubes/mesh_generator/color_generators/radial_color_generator.gd" id="5_sf3g0"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_0xm2m"]
 
@@ -11,11 +12,22 @@
 
 [sub_resource type="Resource" id="Resource_rtkrw"]
 script = ExtResource("3_fmid0")
+use_seed = false
 random_seed = 123123
 planet_size = 80.0
 noise_scale = 1.6
 sharpen = 0.9
 metadata/_custom_type_script = "uid://c67846kv4ncmj"
+
+[sub_resource type="Gradient" id="Gradient_lew8y"]
+offsets = PackedFloat32Array(0, 0.21794872, 0.45726496, 0.61538464, 0.7606838, 1)
+colors = PackedColorArray(0.22, 0.22, 0.22, 1, 0.21960784, 0.21960784, 0.21960784, 1, 0.31, 0.31, 0.31, 1, 0.42, 0.37968, 0.1512, 1, 0.41960785, 0.38039216, 0.15294118, 1, 0.06400001, 0.64, 0.0736, 1)
+
+[sub_resource type="Resource" id="Resource_5xqkv"]
+script = ExtResource("5_sf3g0")
+color_gradient = SubResource("Gradient_lew8y")
+color_gradient_height = 40
+metadata/_custom_type_script = "uid://dsi223361ju3h"
 
 [sub_resource type="Environment" id="Environment_2g2bo"]
 ambient_light_source = 2
@@ -54,6 +66,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -40)
 start_at = Vector3(-70, -70, -70)
 chunks = Vector3i(7, 7, 7)
 density_generator = SubResource("Resource_rtkrw")
+color_generator = SubResource("Resource_5xqkv")
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=688381519]
 
