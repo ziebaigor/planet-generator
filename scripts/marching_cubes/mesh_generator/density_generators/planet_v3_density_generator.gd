@@ -5,7 +5,7 @@ extends DensityGenerator
 @export var use_seed := true
 @export var random_seed : int = 0
 
-@export var planet_size : float = 100.0   # full diameter
+@export var planet_size : float = 100.0  # full diameter
 @export var noise_scale : float = 1.0
 @export var noise_height_multiplier : float = 0.5
 ## Value used to "sharpen" the edges of the noise - the absolute value of the final

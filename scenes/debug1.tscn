@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://gvikt8hcwcwk" path="res://scripts/misc/player_no_clip.gd" id="1_qsr53"]
 [ext_resource type="PackedScene" uid="uid://dpnigd2lqwehr" path="res://scripts/marching_cubes/marching_cubes.tscn" id="2_fmid0"]
+[ext_resource type="Script" uid="uid://c065syrqhvn8h" path="res://scripts/misc/debug_cube_spawner.gd" id="2_rtkrw"]
 [ext_resource type="Script" uid="uid://c67846kv4ncmj" path="res://scripts/marching_cubes/mesh_generator/density_generators/planet_v3_density_generator.gd" id="3_fmid0"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_0xm2m"]
@@ -41,6 +42,12 @@ shape = SubResource("CapsuleShape3D_h2yge")
 
 [node name="Camera3D" type="Camera3D" parent="PlayerNoClip" unique_id=1481269837]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4974506, 0)
+
+[node name="DebugCubeSpawner" type="Node3D" parent="PlayerNoClip" unique_id=2083649831 node_paths=PackedStringArray("cubes_parent", "player", "planet")]
+script = ExtResource("2_rtkrw")
+cubes_parent = NodePath("../..")
+player = NodePath("..")
+planet = NodePath("../../MarchingCubes")
 
 [node name="MarchingCubes" parent="." unique_id=739817206 instance=ExtResource("2_fmid0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -40)
