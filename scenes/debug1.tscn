@@ -10,8 +10,14 @@
 
 [sub_resource type="Resource" id="Resource_rtkrw"]
 script = ExtResource("3_fmid0")
-noise_amplitude = 10.0
-noise_frequency = 0.1
+random_seed = 1238
+noise_amplitude = 12.0
+noise_frequency = 0.01
+noise_octaves = 3
+noise_lacunarity = 3.0
+noise_gain = 0.6
+cave_threshold = 0.05
+cave_frequency = 0.01
 metadata/_custom_type_script = "uid://ekssgr150hbn"
 
 [sub_resource type="Environment" id="Environment_2g2bo"]
