@@ -17,6 +17,8 @@ light_angular_distance = 1.0
 
 [node name="MarchingCubes" parent="." unique_id=739817206 instance=ExtResource("2_o3dua")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -40)
+gravity_radius_multiplier = 5.0
+gravity_strength = 2.0
 
 [node name="PlayerController" parent="." unique_id=64172110 instance=ExtResource("2_h7y3g")]
 
