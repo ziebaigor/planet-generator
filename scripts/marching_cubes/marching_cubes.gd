@@ -108,7 +108,7 @@ func generate_chunk_task(start_pos : Vector3) -> void:
 	else:
 		processed_chunks += 1
 		if processed_chunks == total_chunks:
-			_update_gravity()
+			call_deferred("_update_gravity")
 
 
 func _apply_chunk_mesh(chunk_coord : Vector3, arrays : Array) -> void:

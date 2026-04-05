@@ -2,6 +2,30 @@
 
 [ext_resource type="PackedScene" uid="uid://c02samnxbv0v1" path="res://scripts/player_controller/player_controller.tscn" id="2_h7y3g"]
 [ext_resource type="PackedScene" uid="uid://dpnigd2lqwehr" path="res://scripts/marching_cubes/marching_cubes.tscn" id="2_o3dua"]
+[ext_resource type="Script" uid="uid://b5fljoi52b3r2" path="res://scripts/marching_cubes/mesh_generator/density_generators/planet_density_generator.gd" id="2_v6icl"]
+
+[sub_resource type="Resource" id="Resource_n0kf1"]
+script = ExtResource("2_v6icl")
+base_radius = 35.0
+noise_amplitude = 10.0
+metadata/_custom_type_script = "uid://b5fljoi52b3r2"
+
+[sub_resource type="Resource" id="Resource_8b61e"]
+script = ExtResource("2_v6icl")
+base_radius = 35.0
+noise_amplitude = 5.0
+metadata/_custom_type_script = "uid://b5fljoi52b3r2"
+
+[sub_resource type="Resource" id="Resource_o20k0"]
+script = ExtResource("2_v6icl")
+base_radius = 25.0
+noise_amplitude = 3.0
+metadata/_custom_type_script = "uid://b5fljoi52b3r2"
+
+[sub_resource type="Resource" id="Resource_o3dua"]
+script = ExtResource("2_v6icl")
+base_radius = 15.0
+metadata/_custom_type_script = "uid://b5fljoi52b3r2"
 
 [sub_resource type="Environment" id="Environment_2g2bo"]
 ambient_light_source = 2
@@ -15,10 +39,23 @@ transform = Transform3D(0.98539007, 0.073149756, -0.15380353, 0.17031269, -0.423
 light_indirect_energy = 3.0
 light_angular_distance = 1.0
 
-[node name="MarchingCubes" parent="." unique_id=739817206 instance=ExtResource("2_o3dua")]
+[node name="MarchingCubes1" parent="." unique_id=739817206 instance=ExtResource("2_o3dua")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -40)
-gravity_radius_multiplier = 5.0
-gravity_strength = 2.0
+density_generator = SubResource("Resource_n0kf1")
+gravity_strength = 25.0
+
+[node name="MarchingCubes2" parent="." unique_id=693989660 instance=ExtResource("2_o3dua")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -74.68266, 21.140888, -0.34034348)
+density_generator = SubResource("Resource_8b61e")
+
+[node name="MarchingCubes3" parent="." unique_id=119994584 instance=ExtResource("2_o3dua")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.952877, -9.000296, 19.43195)
+density_generator = SubResource("Resource_o20k0")
+gravity_strength = 25.0
+
+[node name="MarchingCubes4" parent="." unique_id=1486413004 instance=ExtResource("2_o3dua")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54.411854, 20.422922, -23.132095)
+density_generator = SubResource("Resource_o3dua")
 
 [node name="PlayerController" parent="." unique_id=64172110 instance=ExtResource("2_h7y3g")]
 
