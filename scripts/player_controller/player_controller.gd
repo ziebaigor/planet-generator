@@ -1,15 +1,19 @@
-class_name Player
+class_name PlayerController
 extends CharacterBody3D
 
+@export var mouse_sensitivity : float = 0.002
+
+@export_group("Movement settings")
 @export var walk_speed        : float = 6.0
 @export var sprint_speed      : float = 12.0
 @export var acceleration      : float = 12.0
 @export var deceleration      : float = 16.0
 @export var jump_velocity     : float = 12.0
 @export var air_multiplier    : float = 0.2
-@export var noclip_speed      : float = 15.0
+@export var noclip_speed      : float = 25.0
 @export var mag_boots_force   : float = 20.0
-@export var mouse_sensitivity : float = 0.002
+
+@export_group("Interpolation speed")
 @export var gravity_interpolation_speed  : float = 10.0
 @export var rotation_interpolation_speed : float = 8.0
 
@@ -42,7 +46,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	# Uncapture mouse when pressed Escape
 	if event.is_action_pressed("ui_cancel"):
-		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE if is_mouse_captured else Input.MOUSE_MODE_CAPTURED)
 
 	# Capture mouse when clicked in game window
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
@@ -129,13 +133,13 @@ func _process_gravity_vector(delta: float) -> void:
 	# Magnetic boots are disabled or player is in the air
 	if not mag_contact:
 		for source in gravity_sources:
-			if source.has_method("get_gravity_vector"):
+			if source is GravitySource:
 				# Add all gravity vectors that influences player
 				target_gravity += source.get_gravity_vector(global_position)
 
 	# Gravity vector smoothing
 	if _gravity_vector.is_zero_approx() or _gravity_vector.distance_squared_to(target_gravity) < 0.01:
-		# Set gravity vector withour smoothing if it was zero or changed very little
+		# Set gravity vector withour smoothing if it was zero before or changed very little
 		_gravity_vector = target_gravity
 	else:
 		# Set gravity vector with interpolation (smoothing)
@@ -177,33 +181,44 @@ func _align_to_gravity(delta: float) -> void:
 func _apply_movement(delta: float) -> void:
 	# If player is standing on ground
 	var on_ground := is_on_floor()
-	# Get gravity direction (get normalized gravity vector or set direction to be under the player)
+	# Gravity direction (get normalized gravity vector or set direction to be under the player)
 	var gravity_dir := _gravity_vector.normalized() if not _gravity_vector.is_zero_approx() else -transform.basis.y
-	# Get movement vector
+	# Input direction from keyboard/pad (2d space)
 	var input_dir := Input.get_vector("left", "right", "forward", "backward")
-	# Direction to what player wants to move (some math shit)
-	var wish_dir := (global_transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+	# Target direction where player wants to move (applied to 3d space)
+	var target_dir := (global_transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	
 	# Separate velocity to vertical and horizontal
 	var vertical_vel := velocity.project(gravity_dir)
 	var horiz_vel    := velocity - vertical_vel
 
-	# Vertically movement
+	# Vertical movement
+	# When player is standing on ground
 	if on_ground:
+		# If vertical_vel and gravity_dir are pointing similar direction
 		if vertical_vel.dot(gravity_dir) > 0.0:
+			# Reset vertical velocity
 			vertical_vel = Vector3.ZERO
 		if Input.is_action_just_pressed("up"):
+			# Set jump velocity
 			vertical_vel = -gravity_dir * jump_velocity
 
+	# Add gravity velocity
 	vertical_vel += _gravity_vector * delta
 
 	# Horizontal movement
+	# Movement control multiplier based on player position (on the ground or in the air)
 	var control       := 1.0 if on_ground else air_multiplier
+	# Current horizonstal speed depending on sprint pressed
 	var current_speed := sprint_speed if Input.is_action_pressed("sprint") else walk_speed
 
-	if wish_dir.length_squared() > 0.0001:
-		horiz_vel = horiz_vel.lerp(wish_dir * current_speed, acceleration * control * delta)
+	# If player wants to move in target direction
+	if target_dir.length_squared() > 0.0001:
+		# Smooth acceleration towards target_dir by interpolation
+		horiz_vel = horiz_vel.lerp(target_dir * current_speed, acceleration * control * delta)
+	# If player don't want to move (target direction is zero)
 	else:
+		# Smooth deceleration towards Vector3.ZERO by interpolation
 		horiz_vel = horiz_vel.lerp(Vector3.ZERO, deceleration * control * delta)
 
 	# Add horizontal and vertical velocity together
@@ -211,20 +226,23 @@ func _apply_movement(delta: float) -> void:
 
 
 func _apply_noclip(delta: float) -> void:
-	# Get movement direction (left/right/forward/backward)
+	# Movement direction (left/right/forward/backward)
 	var input_dir := Input.get_vector("left", "right", "forward", "backward")
-	# Get vertical movement direction (up/down)
+	# Vertical movement direction (up/down)
 	var vertical_input := Input.get_axis("down", "up")
-
-	# Movement is based on camera rotation
-	var cam_basis := camera.global_transform.basis
-	var wish_dir  := (cam_basis * Vector3(input_dir.x, vertical_input, input_dir.y)).normalized()
-
+	# Target direction where player wants to move based on camera basis
+	var target_dir := (camera.global_transform.basis * Vector3(input_dir.x, vertical_input, input_dir.y)).normalized()
+	# Current speed depending on sprint pressed (sprint multiplies speed by 2)
 	var current_speed := noclip_speed * (2.0 if Input.is_action_pressed("sprint") else 1.0)
 
-	if wish_dir.length_squared() > 0.0001:
-		velocity = velocity.lerp(wish_dir * current_speed, acceleration * delta)
+	# If player wants to move in target direction
+	if target_dir.length_squared() > 0.0001:
+		# Smooth acceleration towards target_dir by interpolation
+		velocity = velocity.lerp(target_dir * current_speed, acceleration * delta)
+	# If player don't want to move (target direction is zero)
 	else:
+		# Smooth deceleration towards Vector3.ZERO by interpolation
 		velocity = velocity.lerp(Vector3.ZERO, deceleration * delta)
 
+	# Set new position without collisions
 	global_position += velocity * delta

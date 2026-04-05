@@ -40,7 +40,7 @@ light_indirect_energy = 3.0
 light_angular_distance = 1.0
 
 [node name="MarchingCubes1" parent="." unique_id=739817206 instance=ExtResource("2_o3dua")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -45)
 density_generator = SubResource("Resource_n0kf1")
 gravity_strength = 25.0
 
