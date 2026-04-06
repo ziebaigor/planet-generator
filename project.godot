@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="marching-cubes-test"
-run/main_scene="uid://bjinj44w1eg4n"
+run/main_scene="uid://b43yvrv0nqvqu"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 

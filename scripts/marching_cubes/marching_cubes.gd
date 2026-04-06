@@ -8,38 +8,25 @@ extends Node3D
 @export var density_generator : DensityGenerator = PlanetDensityGenerator.new()
 @export var color_generator : ColorGenerator = RadialColorGenerator.new()
 
-@export_group("Gravity Settings")
-@export var gravity_radius_multiplier := 1.5
-@export var gravity_strength := 20.0
-@export var constant_gravity := false
-
 var mesh_generator := MarchingCubesMeshGenerator.new()
 
-# If processed_chunks == total_chunks the planet is fully generated
+# If processed_chunks == total_chunks the mesh is fully generated
 var total_chunks := 0
 var processed_chunks := 0
 
-@onready var gravity_source : GravitySource = $GravitySource
 @onready var chunks_parent : Node3D = $Chunks
 
 var mat := StandardMaterial3D.new()
+
+signal planet_generated()
 
 
 func _ready() -> void:
 	mesh_generator.density_generator = density_generator
 	density_generator.initialize()
 	
-	
 	mat.vertex_color_use_as_albedo = true
 	mesh_generator.color_generator = color_generator
-	
-	# Set variables in GravitySource
-	if density_generator is PlanetDensityGenerator:
-		gravity_source.planet_radius = density_generator.base_radius
-		
-	gravity_source.gravity_radius_multiplier = gravity_radius_multiplier
-	gravity_source.gravity_strength = gravity_strength
-	gravity_source.constant_gravity = constant_gravity
 	
 	regenerate_mesh()
 
@@ -110,4 +97,4 @@ func _apply_chunk_mesh(chunk_coord : Vector3, arrays : Array) -> void:
 func _finalize_chunk() -> void:
 	processed_chunks += 1
 	if processed_chunks == total_chunks:
-		gravity_source.generation_done()
+		planet_generated.emit()

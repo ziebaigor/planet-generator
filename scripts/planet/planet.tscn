@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://cma760537lno2"]
+
+[ext_resource type="PackedScene" uid="uid://dpnigd2lqwehr" path="res://scripts/marching_cubes/marching_cubes.tscn" id="1_klx1d"]
+[ext_resource type="PackedScene" uid="uid://c0plpsly8x0u" path="res://scripts/gravity_source/gravity_source.tscn" id="2_25h14"]
+[ext_resource type="Script" uid="uid://wddvgb34rloo" path="res://scripts/planet/planet.gd" id="2_un6tk"]
+
+[node name="Planet" unique_id=739817206 instance=ExtResource("1_klx1d")]
+script = ExtResource("2_un6tk")
+radius = 30
+gravity_radius_multiplier = 1.5
+gravity_strength = 20.0
+constant_gravity = false
+density_generator = null
+
+[node name="GravitySource" parent="." index="2" unique_id=559080801 instance=ExtResource("2_25h14")]
