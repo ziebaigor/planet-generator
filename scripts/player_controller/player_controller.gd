@@ -3,23 +3,43 @@ extends CharacterBody3D
 
 @export var mouse_sensitivity : float = 0.002
 
-@export_group("Movement settings")
-@export var walk_speed        : float = 6.0
-@export var sprint_speed      : float = 12.0
-@export var acceleration      : float = 12.0
-@export var deceleration      : float = 16.0
-@export var jump_velocity     : float = 12.0
-@export var air_multiplier    : float = 0.2
-@export var noclip_speed      : float = 25.0
-@export var mag_boots_force   : float = 20.0
+@export_group("Movement Settings")
+@export var walk_speed      : float = 6.0
+@export var sprint_speed    : float = 12.0
+@export var acceleration    : float = 12.0
+@export var deceleration    : float = 16.0
+@export var jump_velocity   : float = 12.0
+@export var air_multiplier  : float = 0.2
+@export var noclip_speed    : float = 25.0
+@export var mag_boots_force : float = 20.0
 
-@export_group("Interpolation speed")
-@export var gravity_interpolation_speed  : float = 10.0
-@export var rotation_interpolation_speed : float = 8.0
+@export_group("Camera Offset Effect")
+@export var offset_enabled     : bool = true
+@export var jump_offset        : float = 0.5
+@export var land_offset        : float = 1.0
+@export var set_offset_speed   : float = 15.0
+@export var clear_offset_speed : float = 10.0
+
+@export_group("FOV Settings")
+@export var fov_enabled     : bool = true
+@export var base_fov        : float = 75.0
+@export var max_fov         : float = 125.0
+@export var max_fall_speed  : float = 30.0
+@export var fov_set_speed   : float = 5.0
+
+@export_group("Gravity Set Speeds")
+@export var gravity_set_speed  : float = 10.0
+@export var rotation_set_speed : float = 8.0
 
 var gravity_sources : Array[Node3D] = []
 var noclip          : bool = false
 var mag_boots       : bool = false
+
+var _was_on_floor            : bool = false
+var _fall_speed              : float = 0.0
+var _target_camera_y_offset  : float = 0.0
+var _current_camera_y_offset : float = 0.0
+var _camera_y_default        : float = 0.0
 
 var _gravity_vector : Vector3 = Vector3.ZERO
 var _camera_pitch   : float = 0.0
@@ -31,6 +51,8 @@ var _camera_pitch   : float = 0.0
 func _ready() -> void:
 	# Capture mouse
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	# Set default camera height
+	_camera_y_default = camera.position.y
 	# Set not sliding from steep slops
 	floor_stop_on_slope = true
 	# Set detecting floor that are up to 60 degrees steep
@@ -81,8 +103,12 @@ func _physics_process(delta: float) -> void:
 	
 	# Rotate player to alighn to gravity vector
 	_align_to_gravity(delta)
-	# Apply movement from keyboard
+	# Apply movement from input
 	_apply_movement(delta)
+	# Apply camera offset effect
+	if offset_enabled: _process_camera_offset(delta)
+	# Apply FOV changes
+	if fov_enabled: _process_fov(delta)
 	# Move the player and process collisions
 	move_and_slide()
 
@@ -107,6 +133,29 @@ func _rotate_camera(delta: Vector2) -> void:
 	_camera_pitch = clamp(_camera_pitch, deg_to_rad(-90), deg_to_rad(90))
 	# Set camera rotation
 	camera.rotation.x = _camera_pitch
+
+
+func _process_camera_offset(delta: float) -> void:
+	# Smooth clearing target camera offset by interpolation
+	_target_camera_y_offset = lerp(_target_camera_y_offset, 0.0, delta * clear_offset_speed)
+	# Smooth setting current camera offset to target camera offset
+	_current_camera_y_offset = lerp(_current_camera_y_offset, _target_camera_y_offset, delta * set_offset_speed)
+	# Applying smoothed camera offset to camera position
+	camera.position.y = _camera_y_default + _current_camera_y_offset
+
+
+func _process_fov(delta: float) -> void:
+	var target_fov := base_fov
+	
+	# If player has enought falling speed
+	if _fall_speed > 2.0:
+		# Speed ratio between 0.0 and 1.0
+		var speed_ratio : float = clamp((_fall_speed - 2) / max_fall_speed, 0.0, 1.0)
+		# Setting target FOV based on speed ratio
+		target_fov = lerp(base_fov, max_fov, speed_ratio)
+	
+	# Smooth setting camera FOV to target FOV
+	camera.fov = lerp(camera.fov, target_fov, delta * fov_set_speed)
 
 
 # This function sets _gravity_vector
@@ -143,7 +192,7 @@ func _process_gravity_vector(delta: float) -> void:
 		_gravity_vector = target_gravity
 	else:
 		# Set gravity vector with interpolation (smoothing)
-		_gravity_vector = _gravity_vector.lerp(target_gravity, delta * gravity_interpolation_speed)
+		_gravity_vector = _gravity_vector.lerp(target_gravity, delta * gravity_set_speed)
 
 
 # Rotate the player to align to gravity vector
@@ -175,7 +224,7 @@ func _align_to_gravity(delta: float) -> void:
 	# Calculate target basis for player that is rotated on rotation axis
 	var target_basis := global_transform.basis.rotated(rotation_axis, angle)
 	# Use interpolation for smooth rotation
-	global_transform.basis = global_transform.basis.slerp(target_basis, delta * rotation_interpolation_speed).orthonormalized()
+	global_transform.basis = global_transform.basis.slerp(target_basis, delta * rotation_set_speed).orthonormalized()
 
 
 func _apply_movement(delta: float) -> void:
@@ -187,6 +236,17 @@ func _apply_movement(delta: float) -> void:
 	var input_dir := Input.get_vector("left", "right", "forward", "backward")
 	# Target direction where player wants to move (applied to 3d space)
 	var target_dir := (global_transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+	
+	# If player has just landed on floor
+	if on_ground and not _was_on_floor:
+		# Calculate impact force based on fall speed
+		var impact_multiplier = clamp(_fall_speed / 10.0, 0.5, 2.5)
+		# Set target camera offset based on impact force
+		_target_camera_y_offset = -land_offset * impact_multiplier
+	
+	# Save state for next physics frame
+	_was_on_floor = on_ground
+	_fall_speed = velocity.dot(gravity_dir)
 	
 	# Separate velocity to vertical and horizontal
 	var vertical_vel := velocity.project(gravity_dir)
@@ -202,6 +262,8 @@ func _apply_movement(delta: float) -> void:
 		if Input.is_action_just_pressed("up"):
 			# Set jump velocity
 			vertical_vel = -gravity_dir * jump_velocity
+			# Set target camera offset to jump offset
+			_target_camera_y_offset = jump_offset
 
 	# Add gravity velocity
 	vertical_vel += _gravity_vector * delta
