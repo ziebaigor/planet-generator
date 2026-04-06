@@ -1,13 +1,25 @@
 class_name MarchingCubes
 extends Node3D
 
+@export_group("Generation Settings")
 @export var start_at := Vector3(-50,-50,-50)
 @export var chunk_size := 20
 @export var chunks := Vector3i(5,5,5)
 @export var density_generator : DensityGenerator = PlanetDensityGenerator.new()
 @export var color_generator : ColorGenerator = RadialColorGenerator.new()
 
+@export_group("Gravity Settings")
+@export var gravity_radius_multiplier := 1.5
+@export var gravity_strength := 20.0
+@export var constant_gravity := false
+
 var mesh_generator := MarchingCubesMeshGenerator.new()
+
+# If processed_chunks == total_chunks the planet is fully generated
+var total_chunks := 0
+var processed_chunks := 0
+
+@onready var gravity_source : GravitySource = $GravitySource
 @onready var chunks_parent : Node3D = $Chunks
 
 var mat := StandardMaterial3D.new()
@@ -17,15 +29,27 @@ func _ready() -> void:
 	mesh_generator.density_generator = density_generator
 	density_generator.initialize()
 	
+	
 	mat.vertex_color_use_as_albedo = true
 	mesh_generator.color_generator = color_generator
 	
+	# Set variables in GravitySource
+	if density_generator is PlanetDensityGenerator:
+		gravity_source.planet_radius = density_generator.base_radius
+		
+	gravity_source.gravity_radius_multiplier = gravity_radius_multiplier
+	gravity_source.gravity_strength = gravity_strength
+	gravity_source.constant_gravity = constant_gravity
+	
 	regenerate_mesh()
+
 
 func regenerate_mesh() -> void:
 	# Delete old chunks
 	for ch in chunks_parent.get_children():
 		ch.queue_free()
+	
+	processed_chunks = 0
 	
 	# TODO: TEMPORARY!
 	var chunk_coords : PackedVector3Array = []
@@ -40,6 +64,7 @@ func regenerate_mesh() -> void:
 				
 				chunk_coords.append(chunk_coord)
 	
+	total_chunks = chunk_coords.size()
 	
 	var tasks : Array = []
 	for coord in chunk_coords:
@@ -55,6 +80,8 @@ func generate_chunk_task(start_pos : Vector3) -> void:
 	
 	if arrays[0].size() != 0:
 		call_deferred("_apply_chunk_mesh", start_pos, arrays)
+	else:
+		call_deferred("_finalize_chunk")
 
 
 func _apply_chunk_mesh(chunk_coord : Vector3, arrays : Array) -> void:
@@ -66,7 +93,6 @@ func _apply_chunk_mesh(chunk_coord : Vector3, arrays : Array) -> void:
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	new_chunk.mesh = mesh
 	
-	
 	# Collision 
 	var body := StaticBody3D.new()
 	new_chunk.add_child(body)
@@ -75,6 +101,13 @@ func _apply_chunk_mesh(chunk_coord : Vector3, arrays : Array) -> void:
 	body.add_child(collision)
 	collision.shape = mesh.create_trimesh_shape()
 	
-	
 	# Material
 	new_chunk.mesh.surface_set_material(0, mat)
+	
+	_finalize_chunk()
+
+
+func _finalize_chunk() -> void:
+	processed_chunks += 1
+	if processed_chunks == total_chunks:
+		gravity_source.generation_done()
