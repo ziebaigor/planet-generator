@@ -1,6 +1,7 @@
 class_name MarchingCubes
 extends Node3D
 
+@export_group("Generation Settings")
 @export var start_at := Vector3(-50,-50,-50)
 @export var chunk_size := 20
 @export var chunks := Vector3i(5,5,5)
@@ -8,9 +9,16 @@ extends Node3D
 @export var color_generator : ColorGenerator = RadialColorGenerator.new()
 
 var mesh_generator := MarchingCubesMeshGenerator.new()
+
+# If processed_chunks == total_chunks the mesh is fully generated
+var total_chunks := 0
+var processed_chunks := 0
+
 @onready var chunks_parent : Node3D = $Chunks
 
 var mat := StandardMaterial3D.new()
+
+signal planet_generated()
 
 
 func _ready() -> void:
@@ -22,10 +30,13 @@ func _ready() -> void:
 	
 	regenerate_mesh()
 
+
 func regenerate_mesh() -> void:
 	# Delete old chunks
 	for ch in chunks_parent.get_children():
 		ch.queue_free()
+	
+	processed_chunks = 0
 	
 	# TODO: TEMPORARY!
 	var chunk_coords : PackedVector3Array = []
@@ -40,6 +51,7 @@ func regenerate_mesh() -> void:
 				
 				chunk_coords.append(chunk_coord)
 	
+	total_chunks = chunk_coords.size()
 	
 	var tasks : Array = []
 	for coord in chunk_coords:
@@ -55,6 +67,8 @@ func generate_chunk_task(start_pos : Vector3) -> void:
 	
 	if arrays[0].size() != 0:
 		call_deferred("_apply_chunk_mesh", start_pos, arrays)
+	else:
+		call_deferred("_finalize_chunk")
 
 
 func _apply_chunk_mesh(chunk_coord : Vector3, arrays : Array) -> void:
@@ -66,7 +80,6 @@ func _apply_chunk_mesh(chunk_coord : Vector3, arrays : Array) -> void:
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	new_chunk.mesh = mesh
 	
-	
 	# Collision 
 	var body := StaticBody3D.new()
 	new_chunk.add_child(body)
@@ -75,6 +88,13 @@ func _apply_chunk_mesh(chunk_coord : Vector3, arrays : Array) -> void:
 	body.add_child(collision)
 	collision.shape = mesh.create_trimesh_shape()
 	
-	
 	# Material
 	new_chunk.mesh.surface_set_material(0, mat)
+	
+	_finalize_chunk()
+
+
+func _finalize_chunk() -> void:
+	processed_chunks += 1
+	if processed_chunks == total_chunks:
+		planet_generated.emit()
