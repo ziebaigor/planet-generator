@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://c02samnxbv0v1" path="res://scripts/player_controller/player_controller.tscn" id="2_h7y3g"]
 [ext_resource type="Script" uid="uid://b5fljoi52b3r2" path="res://scripts/marching_cubes/mesh_generator/density_generators/planet_density_generator.gd" id="2_v6icl"]
+[ext_resource type="Script" uid="uid://dsi223361ju3h" path="res://scripts/marching_cubes/mesh_generator/color_generators/radial_color_generator.gd" id="3_n0kf1"]
 [ext_resource type="PackedScene" uid="uid://cma760537lno2" path="res://scripts/planet/planet.tscn" id="3_v6icl"]
 
 [sub_resource type="Resource" id="Resource_v6icl"]
@@ -10,11 +11,31 @@ base_radius = 35.0
 noise_amplitude = 10.0
 metadata/_custom_type_script = "uid://b5fljoi52b3r2"
 
+[sub_resource type="Gradient" id="Gradient_8b61e"]
+offsets = PackedFloat32Array(0.481982, 0.9414414, 1)
+colors = PackedColorArray(0.22, 0.22, 0.22, 1, 0.48700917, 0.5545346, 0.2141532, 1, 0.38247997, 0.84, 0.2016, 1)
+
+[sub_resource type="Resource" id="Resource_o20k0"]
+script = ExtResource("3_n0kf1")
+color_gradient = SubResource("Gradient_8b61e")
+color_gradient_height = 35
+metadata/_custom_type_script = "uid://dsi223361ju3h"
+
 [sub_resource type="Resource" id="Resource_lybi1"]
 script = ExtResource("2_v6icl")
 base_radius = 35.0
 noise_amplitude = 5.0
 metadata/_custom_type_script = "uid://b5fljoi52b3r2"
+
+[sub_resource type="Gradient" id="Gradient_v6icl"]
+offsets = PackedFloat32Array(0.481982, 0.8918919, 1)
+colors = PackedColorArray(0.22, 0.22, 0.22, 1, 0.78931373, 0.38668293, 0.15534827, 1, 0.88235646, 0.6874246, 0.11256456, 1)
+
+[sub_resource type="Resource" id="Resource_n0kf1"]
+script = ExtResource("3_n0kf1")
+color_gradient = SubResource("Gradient_v6icl")
+color_gradient_height = 35
+metadata/_custom_type_script = "uid://dsi223361ju3h"
 
 [sub_resource type="Resource" id="Resource_1vc0s"]
 script = ExtResource("2_v6icl")
@@ -22,10 +43,30 @@ base_radius = 25.0
 noise_amplitude = 3.0
 metadata/_custom_type_script = "uid://b5fljoi52b3r2"
 
+[sub_resource type="Gradient" id="Gradient_n0kf1"]
+offsets = PackedFloat32Array(0.481982, 0.8918919, 1)
+colors = PackedColorArray(0.22, 0.22, 0.22, 1, 0.6714538, 0.10955017, 0.4799536, 1, 0.10073025, 0.8084404, 0.87588835, 1)
+
+[sub_resource type="Resource" id="Resource_8b61e"]
+script = ExtResource("3_n0kf1")
+color_gradient = SubResource("Gradient_n0kf1")
+color_gradient_height = 35
+metadata/_custom_type_script = "uid://dsi223361ju3h"
+
 [sub_resource type="Resource" id="Resource_se6bp"]
 script = ExtResource("2_v6icl")
 base_radius = 15.0
 metadata/_custom_type_script = "uid://b5fljoi52b3r2"
+
+[sub_resource type="Gradient" id="Gradient_o20k0"]
+offsets = PackedFloat32Array(0.481982, 0.8333333, 1)
+colors = PackedColorArray(0.22, 0.22, 0.22, 1, 0.86009383, 0.7922573, 0.9660202, 1, 0.5203214, 0.28773904, 0.88349795, 1)
+
+[sub_resource type="Resource" id="Resource_siwsx"]
+script = ExtResource("3_n0kf1")
+color_gradient = SubResource("Gradient_o20k0")
+color_gradient_height = 35
+metadata/_custom_type_script = "uid://dsi223361ju3h"
 
 [sub_resource type="Environment" id="Environment_2g2bo"]
 ambient_light_source = 2
@@ -44,22 +85,26 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -45)
 radius = 35
 gravity_strength = 25.0
 density_generator = SubResource("Resource_v6icl")
+color_generator = SubResource("Resource_o20k0")
 
 [node name="Planet2" parent="." unique_id=194851744 instance=ExtResource("3_v6icl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -74.683, 21.141, -0.34)
 radius = 35
 gravity_strength = 25.0
 density_generator = SubResource("Resource_lybi1")
+color_generator = SubResource("Resource_n0kf1")
 
 [node name="Planet3" parent="." unique_id=1910170208 instance=ExtResource("3_v6icl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.953, -9, 19.432)
 chunk_size = 25
 density_generator = SubResource("Resource_1vc0s")
+color_generator = SubResource("Resource_8b61e")
 
 [node name="Planet4" parent="." unique_id=19065000 instance=ExtResource("3_v6icl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54.412, 20.423, -23.132)
 radius = 15
 density_generator = SubResource("Resource_se6bp")
+color_generator = SubResource("Resource_siwsx")
 
 [node name="PlayerController" parent="." unique_id=64172110 instance=ExtResource("2_h7y3g")]
 
