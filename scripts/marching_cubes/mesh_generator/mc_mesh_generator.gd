@@ -1,8 +1,12 @@
 class_name MarchingCubesMeshGenerator
 extends RefCounted
 
+enum NORMAL_TYPE { SMOOTH, HARD }
+
 var density_generator : DensityGenerator = PlanetDensityGenerator.new()
 var iso_level := 0.0
+
+var normal_type := NORMAL_TYPE.SMOOTH
 
 var color_generator : ColorGenerator = RadialColorGenerator.new()
 
@@ -24,11 +28,14 @@ func generate_mesh_arrays(chunk_origin : Vector3, size : int) -> Array:
 	var normals : PackedVector3Array = []
 	var colors : PackedColorArray = []
 	
+	var cache : Dictionary[Vector3,float] = {}
+	
 	for x in range(size):
 		for y in range(size):
 			for z in range(size):
 				var world_pos = chunk_origin + Vector3(x, y, z)
-				_calculate_cube_verts(world_pos, chunk_origin, vertices, indices, normals, colors)
+				_calculate_cube_verts(world_pos, chunk_origin, cache, 
+					vertices, indices, normals, colors)
 	
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
@@ -43,21 +50,24 @@ func generate_mesh_arrays(chunk_origin : Vector3, size : int) -> Array:
 
 func _calculate_cube_verts(start_pos : Vector3, 
 		chunk_origin : Vector3,
+		cache : Dictionary[Vector3,float],
 		vertices : PackedVector3Array, 
 		indices : PackedInt32Array,
 		normals : PackedVector3Array,
 		colors : PackedColorArray) -> void:
 	
-	var corner_positions = []
-	var corner_values = []
+	var corner_positions : PackedVector3Array = []
+	var corner_values : PackedFloat32Array = []
 	var cube_index := 0
 	
 	for i in range(8):
 		var pos = start_pos + CUBE_CORNERS[i]
 		corner_positions.append(pos)
 		
-		var density_value := _get_density(pos)
-		corner_values.append(density_value)
+		if !cache.has(pos):
+			cache[pos] = _get_density(pos)
+		
+		corner_values.append(cache[pos])
 		
 		if corner_values[i] < iso_level:
 			cube_index |= 1 << i
@@ -105,9 +115,15 @@ func _calculate_cube_verts(start_pos : Vector3,
 		indices.append(base_index + 1)
 		indices.append(base_index + 2)
 		
-		normals.append(_compute_normal(v0))
-		normals.append(_compute_normal(v1))
-		normals.append(_compute_normal(v2))
+		if normal_type == NORMAL_TYPE.HARD:
+			var normal = (v1 - v0).cross(v2 - v0).normalized()
+			normals.append(normal)
+			normals.append(normal)
+			normals.append(normal)
+		else:
+			normals.append(_compute_smooth_normal(v0))
+			normals.append(_compute_smooth_normal(v1))
+			normals.append(_compute_smooth_normal(v2))
 		
 		colors.append(_get_color(v0))
 		colors.append(_get_color(v1))
@@ -119,7 +135,7 @@ func _vertex_interp(p1 : Vector3, p2 : Vector3, val1 : float, val2 : float) -> V
 	var t = (iso_level - val1) / (val2 - val1)
 	return p1 + t * (p2 - p1)
 
-func _compute_normal(p: Vector3) -> Vector3:
+func _compute_smooth_normal(p: Vector3) -> Vector3:
 	var e = 0.01
 	var dx = _get_density(p + Vector3(e,0,0)) - _get_density(p - Vector3(e,0,0))
 	var dy = _get_density(p + Vector3(0,e,0)) - _get_density(p - Vector3(0,e,0))
