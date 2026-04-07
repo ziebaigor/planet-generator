@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://b5fljoi52b3r2" path="res://scripts/marching_cubes/mesh_generator/density_generators/planet_density_generator.gd" id="2_v6icl"]
 [ext_resource type="Script" uid="uid://dsi223361ju3h" path="res://scripts/marching_cubes/mesh_generator/color_generators/radial_color_generator.gd" id="3_n0kf1"]
 [ext_resource type="PackedScene" uid="uid://cma760537lno2" path="res://scripts/planet/planet.tscn" id="3_v6icl"]
+[ext_resource type="Script" uid="uid://cwngvesh4fpns" path="res://scripts/misc/marching_cubes_debug_info.gd" id="4_n0kf1"]
 
 [sub_resource type="Resource" id="Resource_v6icl"]
 script = ExtResource("2_v6icl")
@@ -86,6 +87,9 @@ radius = 35
 gravity_strength = 25.0
 density_generator = SubResource("Resource_v6icl")
 color_generator = SubResource("Resource_o20k0")
+
+[node name="DebugInfo" type="Node" parent="Planet1" unique_id=1148289492]
+script = ExtResource("4_n0kf1")
 
 [node name="Planet2" parent="." unique_id=194851744 instance=ExtResource("3_v6icl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -74.683, 21.141, -0.34)
