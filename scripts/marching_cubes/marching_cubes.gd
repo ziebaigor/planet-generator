@@ -7,6 +7,7 @@ extends Node3D
 @export var chunks := Vector3i(5,5,5)
 @export var density_generator : DensityGenerator = PlanetDensityGenerator.new()
 @export var color_generator : ColorGenerator = RadialColorGenerator.new()
+@export var normal_type := MarchingCubesMeshGenerator.NORMAL_TYPE.SMOOTH
 
 var mesh_generator := MarchingCubesMeshGenerator.new()
 
@@ -30,6 +31,8 @@ func _ready() -> void:
 	
 	mat.vertex_color_use_as_albedo = true
 	mesh_generator.color_generator = color_generator
+	
+	mesh_generator.normal_type = normal_type
 	
 	regenerate_mesh()
 
