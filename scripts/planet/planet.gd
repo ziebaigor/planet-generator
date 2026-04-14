@@ -8,6 +8,7 @@ extends MarchingCubes
 @export var constant_gravity := false
 
 @onready var gravity_source : GravitySource = $GravitySource
+@onready var planter : Planter = $Planter
 
 
 func _ready() -> void:
@@ -21,6 +22,9 @@ func _ready() -> void:
 	gravity_source.gravity_strength = gravity_strength
 	gravity_source.constant_gravity = constant_gravity
 	
+	# Planter
+	planter.planet_radius = radius
+	
 	super._ready()
 
 
@@ -28,3 +32,4 @@ func _finalize_chunk(chunk_coords : Vector3) -> void:
 	super._finalize_chunk(chunk_coords)
 	if processed_chunks == total_chunks:
 		gravity_source.generation_done()
+		planter.initialize()
