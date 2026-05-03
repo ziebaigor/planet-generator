@@ -8,6 +8,7 @@ extends Node3D
 @export var density_generator : DensityGenerator = PlanetDensityGenerator.new()
 @export var color_generator : ColorGenerator = RadialColorGenerator.new()
 @export var normal_type := MarchingCubesMeshGenerator.NORMAL_TYPE.SMOOTH
+@export var mesh_material := StandardMaterial3D.new()
 
 var mesh_generator := MarchingCubesMeshGenerator.new()
 
@@ -17,7 +18,6 @@ var processed_chunks := 0
 
 @onready var chunks_parent : Node3D = $Chunks
 
-var mat := StandardMaterial3D.new()
 
 signal chunk_generation_started(chunk_coords : Vector3)
 signal chunk_generation_finished(chunk_coords : Vector3)
@@ -29,7 +29,8 @@ func _ready() -> void:
 	mesh_generator.density_generator = density_generator
 	density_generator.initialize()
 	
-	mat.vertex_color_use_as_albedo = true
+	if color_generator != null:
+		mesh_material.vertex_color_use_as_albedo = true
 	mesh_generator.color_generator = color_generator
 	
 	mesh_generator.normal_type = normal_type
@@ -97,7 +98,7 @@ func _apply_chunk_mesh(chunk_coord : Vector3, arrays : Array) -> void:
 	collision.shape = mesh.create_trimesh_shape()
 	
 	# Material
-	new_chunk.mesh.surface_set_material(0, mat)
+	new_chunk.mesh.surface_set_material(0, mesh_material)
 	
 	_finalize_chunk(chunk_coord)
 

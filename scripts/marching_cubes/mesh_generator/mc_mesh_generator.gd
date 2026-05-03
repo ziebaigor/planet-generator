@@ -136,10 +136,11 @@ func _vertex_interp(p1 : Vector3, p2 : Vector3, val1 : float, val2 : float) -> V
 	return p1 + t * (p2 - p1)
 
 func _compute_smooth_normal(p: Vector3) -> Vector3:
-	var e = 0.01
+	var e = 0.5
 	var dx = _get_density(p + Vector3(e,0,0)) - _get_density(p - Vector3(e,0,0))
 	var dy = _get_density(p + Vector3(0,e,0)) - _get_density(p - Vector3(0,e,0))
 	var dz = _get_density(p + Vector3(0,0,e)) - _get_density(p - Vector3(0,0,e))
+	
 	return Vector3(dx, dy, dz).normalized()
 
 func _get_density(pos : Vector3) -> float:
