@@ -7,9 +7,9 @@ extends Node3D
 @export var chunks := Vector3i(5,5,5)
 @export var density_generator : DensityGenerator = PlanetDensityGenerator.new()
 @export var color_generator : ColorGenerator = RadialColorGenerator.new()
-@export var normal_type := MarchingCubesMeshGenerator.NORMAL_TYPE.SMOOTH
+@export var mesh_material := StandardMaterial3D.new()
 
-var mesh_generator := MarchingCubesMeshGenerator.new()
+var mesh_generator := MarchingCubesMeshGeneratorV2.new()
 
 # If processed_chunks == total_chunks the mesh is fully generated
 var total_chunks := 0
@@ -17,10 +17,9 @@ var processed_chunks := 0
 
 @onready var chunks_parent : Node3D = $Chunks
 
-var mat := StandardMaterial3D.new()
 
 signal chunk_generation_started(chunk_coords : Vector3)
-signal chunk_generation_finished(chunk_coords : Vector3)
+signal chunk_generation_finished(chunk_coords : Vector3, chunk_node : MeshInstance3D)
 signal planet_generation_started()
 signal planet_generation_finished()
 
@@ -29,10 +28,9 @@ func _ready() -> void:
 	mesh_generator.density_generator = density_generator
 	density_generator.initialize()
 	
-	mat.vertex_color_use_as_albedo = true
+	if color_generator != null:
+		mesh_material.vertex_color_use_as_albedo = true
 	mesh_generator.color_generator = color_generator
-	
-	mesh_generator.normal_type = normal_type
 	
 	regenerate_mesh()
 
@@ -76,7 +74,7 @@ func generate_chunk_task(start_pos : Vector3) -> void:
 	if arrays[0].size() != 0:
 		call_deferred("_apply_chunk_mesh", start_pos, arrays)
 	else:
-		call_deferred("_finalize_chunk", start_pos)
+		call_deferred("_finalize_chunk", start_pos, null)
 
 
 func _apply_chunk_mesh(chunk_coord : Vector3, arrays : Array) -> void:
@@ -97,14 +95,14 @@ func _apply_chunk_mesh(chunk_coord : Vector3, arrays : Array) -> void:
 	collision.shape = mesh.create_trimesh_shape()
 	
 	# Material
-	new_chunk.mesh.surface_set_material(0, mat)
+	new_chunk.mesh.surface_set_material(0, mesh_material)
 	
-	_finalize_chunk(chunk_coord)
+	_finalize_chunk(chunk_coord, new_chunk)
 
 
-func _finalize_chunk(chunk_coords : Vector3) -> void:
+func _finalize_chunk(chunk_coords : Vector3, chunk_node : MeshInstance3D) -> void:
 	processed_chunks += 1
-	chunk_generation_finished.emit(chunk_coords)
+	chunk_generation_finished.emit(chunk_coords, chunk_node)
 	
 	if processed_chunks == total_chunks:
 		planet_generation_finished.emit()

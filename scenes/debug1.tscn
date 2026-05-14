@@ -1,21 +1,18 @@
 [gd_scene format=3 uid="uid://ceh2n4k8pbfsr"]
 
-[ext_resource type="Script" uid="uid://gvikt8hcwcwk" path="res://scripts/misc/player_no_clip.gd" id="1_qsr53"]
-[ext_resource type="PackedScene" uid="uid://dpnigd2lqwehr" path="res://scripts/marching_cubes/marching_cubes.tscn" id="2_fmid0"]
-[ext_resource type="Script" uid="uid://c065syrqhvn8h" path="res://scripts/misc/debug_cube_spawner.gd" id="2_rtkrw"]
+[ext_resource type="PackedScene" uid="uid://c02samnxbv0v1" path="res://scripts/player_controller/player_controller.tscn" id="1_rtkrw"]
 [ext_resource type="Script" uid="uid://c67846kv4ncmj" path="res://scripts/marching_cubes/mesh_generator/density_generators/planet_v3_density_generator.gd" id="3_fmid0"]
+[ext_resource type="PackedScene" uid="uid://cma760537lno2" path="res://scripts/planet/planet.tscn" id="3_lew8y"]
 [ext_resource type="Script" uid="uid://dsi223361ju3h" path="res://scripts/marching_cubes/mesh_generator/color_generators/radial_color_generator.gd" id="5_sf3g0"]
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_0xm2m"]
-
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_h2yge"]
 
 [sub_resource type="Resource" id="Resource_rtkrw"]
 script = ExtResource("3_fmid0")
 use_seed = false
 random_seed = 123123
-planet_size = 80.0
+planet_size = 50.0
 noise_scale = 1.6
+noise_octaves = 4
+noise_lacunarity = 2.5
 sharpen = 0.9
 metadata/_custom_type_script = "uid://c67846kv4ncmj"
 
@@ -34,35 +31,17 @@ ambient_light_source = 2
 ambient_light_color = Color(0.4506483, 0.4506483, 0.45064825, 1)
 ambient_light_energy = 0.2
 
-[node name="MAIN" type="Node3D" unique_id=1163576499]
+[node name="MAIN2" type="Node3D" unique_id=1163576499]
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=480301683]
 transform = Transform3D(0.98539007, 0.073149756, -0.15380353, 0.17031269, -0.42322767, 0.88987184, 0, -0.90306556, -0.4295027, 0, 25.477766, 44.385086)
 light_indirect_energy = 3.0
 light_angular_distance = 1.0
 
-[node name="PlayerNoClip" type="CharacterBody3D" parent="." unique_id=2096046250]
-transform = Transform3D(1, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, 0, 0, 0)
-script = ExtResource("1_qsr53")
+[node name="PlayerController" parent="." unique_id=64172110 instance=ExtResource("1_rtkrw")]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="PlayerNoClip" unique_id=1993206797]
-visible = false
-mesh = SubResource("CapsuleMesh_0xm2m")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="PlayerNoClip" unique_id=1539004602]
-shape = SubResource("CapsuleShape3D_h2yge")
-
-[node name="Camera3D" type="Camera3D" parent="PlayerNoClip" unique_id=1481269837]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4974506, 0)
-
-[node name="DebugCubeSpawner" type="Node3D" parent="PlayerNoClip" unique_id=2083649831 node_paths=PackedStringArray("cubes_parent", "player", "planet")]
-script = ExtResource("2_rtkrw")
-cubes_parent = NodePath("../..")
-player = NodePath("..")
-planet = NodePath("../../MarchingCubes")
-
-[node name="MarchingCubes" parent="." unique_id=739817206 instance=ExtResource("2_fmid0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -40)
+[node name="Planet" parent="." unique_id=739817206 instance=ExtResource("3_lew8y")]
+gravity_strength = 35.0
 start_at = Vector3(-70, -70, -70)
 chunks = Vector3i(7, 7, 7)
 density_generator = SubResource("Resource_rtkrw")

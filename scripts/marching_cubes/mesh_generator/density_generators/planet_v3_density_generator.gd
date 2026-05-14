@@ -7,6 +7,9 @@ extends DensityGenerator
 
 @export var planet_size : float = 100.0  # full diameter
 @export var noise_scale : float = 1.0
+@export var noise_octaves : int = 3
+@export var noise_lacunarity : float = 2.0
+@export var noise_gain : float = 0.5
 @export var noise_height_multiplier : float = 0.5
 ## Value used to "sharpen" the edges of the noise - the absolute value of the final
 ## noise is raised to the power equal to this value. Smaller values mean more
@@ -26,9 +29,9 @@ func initialize() -> void:
 	noise.seed = random_seed
 	noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
 	noise.fractal_type = FastNoiseLite.FRACTAL_FBM
-	noise.fractal_octaves = 3
-	noise.fractal_lacunarity = 2.0
-	noise.fractal_gain = 0.5
+	noise.fractal_octaves = noise_octaves
+	noise.fractal_lacunarity = noise_lacunarity
+	noise.fractal_gain = noise_gain
 	noise.frequency = noise_scale / 100.0
 
 

@@ -13,6 +13,7 @@ var noise : FastNoiseLite
 func initialize() -> void:
 	randomize()
 	noise = FastNoiseLite.new()
+	noise.seed = randi()
 	noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
 	noise.frequency = noise_frequency
 	noise.fractal_octaves = noise_octaves
