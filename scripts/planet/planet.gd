@@ -24,7 +24,7 @@ func _ready() -> void:
 	super._ready()
 
 
-func _finalize_chunk(chunk_coords : Vector3) -> void:
-	super._finalize_chunk(chunk_coords)
+func _finalize_chunk(chunk_coords : Vector3, chunk_node : MeshInstance3D) -> void:
+	super._finalize_chunk(chunk_coords, chunk_node)
 	if processed_chunks == total_chunks:
 		gravity_source.generation_done()

@@ -4,7 +4,12 @@
 [ext_resource type="Resource" uid="uid://dguucmeg0vqmj" path="res://res/PlanetGenerator1.tres" id="2_ywwu5"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_am12k"]
-roughness = 0.9
+shading_mode = 2
+diffuse_mode = 2
+specular_mode = 1
+disable_ambient_light = true
+metallic_specular = 0.0
+roughness = 0.23
 
 [sub_resource type="SphereMesh" id="SphereMesh_m5mx5"]
 
