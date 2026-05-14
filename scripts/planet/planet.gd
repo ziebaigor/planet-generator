@@ -13,6 +13,7 @@ extends MarchingCubes
 
 @onready var gravity_source : GravitySource = $GravitySource
 @onready var water : MeshInstance3D = $Water
+@onready var water_b : MeshInstance3D = $WaterBackside
 
 
 
@@ -32,7 +33,9 @@ func _ready() -> void:
 	if !generate_water:
 		water_r = 1
 		water.hide()
+		water_b.hide()
 	water.scale = Vector3(water_r,water_r,water_r)
+	water_b.scale = Vector3(water_r,water_r,water_r)
 	
 	super._ready()
 

@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://wddvgb34rloo" path="res://scripts/planet/planet.gd" id="2_un6tk"]
 [ext_resource type="Script" uid="uid://c67846kv4ncmj" path="res://scripts/marching_cubes/mesh_generator/density_generators/planet_v3_density_generator.gd" id="3_un6tk"]
 [ext_resource type="Shader" uid="uid://crwnimc6kjbm1" path="res://scripts/water/water_shader.gdshader" id="5_jqiaj"]
+[ext_resource type="Texture2D" uid="uid://k0c1s7qnw53e" path="res://scripts/water/Water 0341normal.jpg" id="6_pnxfp"]
 
 [sub_resource type="Resource" id="Resource_jqiaj"]
 script = ExtResource("3_un6tk")
@@ -21,6 +22,12 @@ shader = ExtResource("5_jqiaj")
 shader_parameter/shallow_color = Color(0.060000002, 0.5926666, 1, 0.4)
 shader_parameter/deep_color = Color(0, 0.3033335, 0.91, 0.8)
 shader_parameter/depth_max = 25.0
+shader_parameter/wave_normal = ExtResource("6_pnxfp")
+shader_parameter/normal_scale = 0.1
+shader_parameter/specular_exponent = 64.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_pnxfp"]
+flip_faces = true
 
 [node name="Planet" unique_id=739817206 instance=ExtResource("1_klx1d")]
 script = ExtResource("2_un6tk")
@@ -36,4 +43,8 @@ density_generator = SubResource("Resource_jqiaj")
 
 [node name="Water" type="MeshInstance3D" parent="." index="3" unique_id=402339830]
 mesh = SubResource("SphereMesh_un6tk")
+surface_material_override/0 = SubResource("ShaderMaterial_pnxfp")
+
+[node name="WaterBackside" type="MeshInstance3D" parent="." index="4" unique_id=1558344626]
+mesh = SubResource("SphereMesh_pnxfp")
 surface_material_override/0 = SubResource("ShaderMaterial_pnxfp")
