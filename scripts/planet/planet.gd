@@ -7,7 +7,13 @@ extends MarchingCubes
 @export var gravity_strength := 20.0
 @export var constant_gravity := false
 
+@export_group("Water Settings")
+@export var generate_water := true
+@export var water_radius_mult := 2.0
+
 @onready var gravity_source : GravitySource = $GravitySource
+@onready var water : MeshInstance3D = $Water
+
 
 
 func _ready() -> void:
@@ -20,6 +26,13 @@ func _ready() -> void:
 	gravity_source.gravity_radius_multiplier = gravity_radius_multiplier
 	gravity_source.gravity_strength = gravity_strength
 	gravity_source.constant_gravity = constant_gravity
+	
+	# Water
+	var water_r := radius * water_radius_mult
+	if !generate_water:
+		water_r = 1
+		water.hide()
+	water.scale = Vector3(water_r,water_r,water_r)
 	
 	super._ready()
 

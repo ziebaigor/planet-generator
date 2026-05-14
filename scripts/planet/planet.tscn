@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://c0plpsly8x0u" path="res://scripts/gravity_source/gravity_source.tscn" id="2_25h14"]
 [ext_resource type="Script" uid="uid://wddvgb34rloo" path="res://scripts/planet/planet.gd" id="2_un6tk"]
 [ext_resource type="Script" uid="uid://c67846kv4ncmj" path="res://scripts/marching_cubes/mesh_generator/density_generators/planet_v3_density_generator.gd" id="3_un6tk"]
+[ext_resource type="Shader" uid="uid://crwnimc6kjbm1" path="res://scripts/water/water_shader.gdshader" id="5_jqiaj"]
 
 [sub_resource type="Resource" id="Resource_jqiaj"]
 script = ExtResource("3_un6tk")
@@ -12,12 +13,27 @@ noise_scale = 2.0
 noise_octaves = 2
 metadata/_custom_type_script = "uid://c67846kv4ncmj"
 
+[sub_resource type="SphereMesh" id="SphereMesh_un6tk"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pnxfp"]
+render_priority = 0
+shader = ExtResource("5_jqiaj")
+shader_parameter/shallow_color = Color(0.060000002, 0.5926666, 1, 0.4)
+shader_parameter/deep_color = Color(0, 0.3033335, 0.91, 0.8)
+shader_parameter/depth_max = 25.0
+
 [node name="Planet" unique_id=739817206 instance=ExtResource("1_klx1d")]
 script = ExtResource("2_un6tk")
 radius = 30
 gravity_radius_multiplier = 1.5
 gravity_strength = 20.0
 constant_gravity = false
+generate_water = true
+water_radius_mult = 2.0
 density_generator = SubResource("Resource_jqiaj")
 
 [node name="GravitySource" parent="." index="2" unique_id=559080801 instance=ExtResource("2_25h14")]
+
+[node name="Water" type="MeshInstance3D" parent="." index="3" unique_id=402339830]
+mesh = SubResource("SphereMesh_un6tk")
+surface_material_override/0 = SubResource("ShaderMaterial_pnxfp")
