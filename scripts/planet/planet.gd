@@ -33,7 +33,9 @@ func _ready() -> void:
 	if !generate_water:
 		water_r = 1
 		water.hide()
+		water.get_node("WaterArea").set_enabled(false)
 		water_b.hide()
+	
 	water.scale = Vector3(water_r,water_r,water_r)
 	water_b.scale = Vector3(water_r,water_r,water_r)
 	

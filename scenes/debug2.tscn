@@ -116,6 +116,7 @@ color_generator = SubResource("Resource_8b61e")
 [node name="Planet4" parent="." unique_id=19065000 instance=ExtResource("3_v6icl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54.412, 20.423, -23.132)
 radius = 15
+generate_water = false
 density_generator = SubResource("Resource_se6bp")
 color_generator = SubResource("Resource_siwsx")
 
