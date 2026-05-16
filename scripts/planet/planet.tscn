@@ -20,7 +20,7 @@ metadata/_custom_type_script = "uid://c67846kv4ncmj"
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_pnxfp"]
 render_priority = 0
 shader = ExtResource("5_jqiaj")
-shader_parameter/shallow_color = Color(0.060000002, 0.5926666, 1, 0.4)
+shader_parameter/shallow_color = Color(0.05882353, 0.5921569, 1, 0.4)
 shader_parameter/deep_color = Color(0, 0.3033335, 0.91, 0.8)
 shader_parameter/depth_max = 25.0
 shader_parameter/wave_normal = ExtResource("6_pnxfp")
@@ -56,6 +56,7 @@ gravity_strength = 20.0
 constant_gravity = false
 generate_water = true
 water_radius_mult = 2.0
+water_color = Color(0.059, 0.592, 1, 1)
 density_generator = SubResource("Resource_jqiaj")
 
 [node name="GravitySource" parent="." index="2" unique_id=559080801 instance=ExtResource("2_25h14")]

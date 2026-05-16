@@ -104,6 +104,7 @@ script = ExtResource("4_n0kf1")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -74.683, 21.141, -0.34)
 radius = 35
 gravity_strength = 25.0
+water_color = Color(0.8016554, 0.095852904, 0.67951703, 1)
 density_generator = SubResource("Resource_lybi1")
 color_generator = SubResource("Resource_n0kf1")
 

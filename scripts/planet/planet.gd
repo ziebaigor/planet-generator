@@ -10,10 +10,10 @@ extends MarchingCubes
 @export_group("Water Settings")
 @export var generate_water := true
 @export var water_radius_mult := 2.0
+@export var water_color := Color(0.059, 0.592, 1.0)
 
 @onready var gravity_source : GravitySource = $GravitySource
 @onready var water : MeshInstance3D = $Water
-@onready var water_b : MeshInstance3D = $WaterBackside
 
 
 
@@ -34,10 +34,14 @@ func _ready() -> void:
 		water_r = 1
 		water.hide()
 		water.get_node("WaterArea").set_enabled(false)
-		water_b.hide()
 	
 	water.scale = Vector3(water_r,water_r,water_r)
-	water_b.scale = Vector3(water_r,water_r,water_r)
+	
+	var mat = water.get_active_material(0)
+	mat = mat.duplicate()
+	water.set_surface_override_material(0, mat)
+	mat.set_shader_parameter("shallow_color", water_color)
+	mat.set_shader_parameter("deep_color", _make_deep_water_color(water_color))
 	
 	super._ready()
 
@@ -46,3 +50,20 @@ func _finalize_chunk(chunk_coords : Vector3, chunk_node : MeshInstance3D) -> voi
 	super._finalize_chunk(chunk_coords, chunk_node)
 	if processed_chunks == total_chunks:
 		gravity_source.generation_done()
+
+
+func _make_deep_water_color(shallow: Color, value_mul := 0.6, hue_shift := -0.04, saturation_mul := 1.35) -> Color:
+	var h = shallow.h
+	var s = shallow.s
+	var v = shallow.v
+	
+	# Shift hue
+	h = wrapf(h + hue_shift, 0.0, 1.0)
+	
+	# Increase saturation
+	s = clamp(s * saturation_mul, 0.0, 1.0)
+	
+	# Darken
+	v = clamp(v * value_mul, 0.0, 1.0)
+	
+	return Color.from_hsv(h, s, v, shallow.a)
