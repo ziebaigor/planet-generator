@@ -7,10 +7,30 @@ uniform vec3 shallow_color : source_color = vec3(0.1, 0.8, 1.0);
 uniform vec3 deep_color : source_color = vec3(0.0, 0.25, 0.7);
 uniform float depth_max = 25.0;
 
-// Highlights
+// Waves
 uniform sampler2D wave_normal;
+uniform float wave_height = 0.02;
+uniform float wave_speed = 1.2;
+uniform float wave_scale = 0.2;
+
+// Specular
 uniform float normal_scale = 0.25;
 uniform float specular_exponent = 32.0;
+
+
+void vertex() {
+	float t = TIME * wave_speed;
+	
+	// Double wave
+	float wave1 = sin(VERTEX.x * wave_scale + t);
+	float wave2 = cos(VERTEX.z * wave_scale * 0.8 + t * 1.2);
+	
+	float combined_wave =
+		(wave1 + wave2) * 0.5;
+	
+	VERTEX += NORMAL * combined_wave * wave_height;
+}
+
 
 void fragment() {
 	float depth = texture(depth_texture, SCREEN_UV).r;
