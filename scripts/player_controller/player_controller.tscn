@@ -6,6 +6,17 @@
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_0bh36"]
 
+[sub_resource type="SphereShape3D" id="SphereShape3D_l4l3c"]
+radius = 0.02
+
+[sub_resource type="SphereMesh" id="SphereMesh_0bh36"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0bh36"]
+transparency = 1
+cull_mode = 1
+shading_mode = 0
+albedo_color = Color(0.017999982, 0.4737, 0.9, 0.46666667)
+
 [sub_resource type="SphereShape3D" id="SphereShape3D_0bh36"]
 radius = 0.8
 
@@ -21,6 +32,17 @@ shape = SubResource("CapsuleShape3D_0bh36")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=268890660]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="WaterTintArea" type="Area3D" parent="Camera3D" unique_id=2054264488 groups=["water_tint_area"]]
+visible = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Camera3D/WaterTintArea" unique_id=251196717]
+shape = SubResource("SphereShape3D_l4l3c")
+
+[node name="WaterTint" type="MeshInstance3D" parent="Camera3D/WaterTintArea" unique_id=446551657]
+transform = Transform3D(0.35, 0, 0, 0, -1.5298985e-08, -0.35, 0, 0.35, -1.5298985e-08, 0, 0, 0)
+mesh = SubResource("SphereMesh_0bh36")
+surface_material_override/0 = SubResource("StandardMaterial3D_0bh36")
 
 [node name="FloorDetector" type="ShapeCast3D" parent="." unique_id=487594997]
 shape = SubResource("SphereShape3D_0bh36")

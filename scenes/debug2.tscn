@@ -73,7 +73,7 @@ metadata/_custom_type_script = "uid://dsi223361ju3h"
 [sub_resource type="Environment" id="Environment_2g2bo"]
 ambient_light_source = 2
 ambient_light_color = Color(0.4506483, 0.4506483, 0.45064825, 1)
-ambient_light_energy = 0.2
+ambient_light_energy = 0.1
 
 [node name="MAIN" type="Node3D" unique_id=1163576499]
 
@@ -84,38 +84,75 @@ light_angular_distance = 1.0
 
 [node name="AmbientLight3D" type="DirectionalLight3D" parent="." unique_id=1419027031]
 transform = Transform3D(0.98510355, -0.07385874, 0.15529424, 0.17196341, 0.42310455, -0.88961303, -9.315189e-09, 0.90306574, 0.4295028, 0, 25.477766, 44.385086)
-light_color = Color(0.77, 0.73766, 0.49279997, 1)
+light_color = Color(0.5112, 0.69012, 0.71, 1)
 light_energy = 0.304
 light_angular_distance = 1.0
-light_negative = true
 sky_mode = 1
 
-[node name="Planet1" parent="." unique_id=1677084317 instance=ExtResource("3_v6icl")]
+[node name="Planet1" parent="." unique_id=1677084317 node_paths=PackedStringArray("directional_light") instance=ExtResource("3_v6icl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -45)
 radius = 35
+gravity_radius_multiplier = 1.5
 gravity_strength = 25.0
+constant_gravity = false
+generate_water = true
+water_radius_mult = 2.0
+water_color = Color(0.059, 0.592, 1, 1)
+directional_light = NodePath("../DirectionalLight3D")
+start_at = Vector3(-50, -50, -50)
+chunk_size = 20
+chunks = Vector3i(5, 5, 5)
 density_generator = SubResource("Resource_v6icl")
 color_generator = SubResource("Resource_o20k0")
 
 [node name="DebugInfo" type="Node" parent="Planet1" unique_id=1148289492]
 script = ExtResource("4_n0kf1")
 
-[node name="Planet2" parent="." unique_id=194851744 instance=ExtResource("3_v6icl")]
+[node name="Planet2" parent="." unique_id=194851744 node_paths=PackedStringArray("directional_light") instance=ExtResource("3_v6icl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -74.683, 21.141, -0.34)
 radius = 35
+gravity_radius_multiplier = 1.5
 gravity_strength = 25.0
+constant_gravity = false
+generate_water = true
+water_radius_mult = 2.0
+water_color = Color(0.8016554, 0.095852904, 0.67951703, 1)
+directional_light = NodePath("../DirectionalLight3D")
+start_at = Vector3(-50, -50, -50)
+chunk_size = 20
+chunks = Vector3i(5, 5, 5)
 density_generator = SubResource("Resource_lybi1")
 color_generator = SubResource("Resource_n0kf1")
 
-[node name="Planet3" parent="." unique_id=1910170208 instance=ExtResource("3_v6icl")]
+[node name="Planet3" parent="." unique_id=1910170208 node_paths=PackedStringArray("directional_light") instance=ExtResource("3_v6icl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.953, -9, 19.432)
+radius = 30
+gravity_radius_multiplier = 1.5
+gravity_strength = 20.0
+constant_gravity = false
+generate_water = true
+water_radius_mult = 2.0
+water_color = Color(0.059, 0.592, 1, 1)
+directional_light = NodePath("../DirectionalLight3D")
+start_at = Vector3(-50, -50, -50)
 chunk_size = 25
+chunks = Vector3i(5, 5, 5)
 density_generator = SubResource("Resource_1vc0s")
 color_generator = SubResource("Resource_8b61e")
 
-[node name="Planet4" parent="." unique_id=19065000 instance=ExtResource("3_v6icl")]
+[node name="Planet4" parent="." unique_id=19065000 node_paths=PackedStringArray("directional_light") instance=ExtResource("3_v6icl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54.412, 20.423, -23.132)
 radius = 15
+gravity_radius_multiplier = 1.5
+gravity_strength = 20.0
+constant_gravity = false
+generate_water = false
+water_radius_mult = 2.0
+water_color = Color(0.059, 0.592, 1, 1)
+directional_light = NodePath("../DirectionalLight3D")
+start_at = Vector3(-50, -50, -50)
+chunk_size = 20
+chunks = Vector3i(5, 5, 5)
 density_generator = SubResource("Resource_se6bp")
 color_generator = SubResource("Resource_siwsx")
 
