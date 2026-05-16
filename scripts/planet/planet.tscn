@@ -29,6 +29,7 @@ shader_parameter/wave_speed = 1.2
 shader_parameter/wave_scale = 80.0
 shader_parameter/normal_scale = 0.1
 shader_parameter/specular_exponent = 64.0
+shader_parameter/specular_light_dir = Vector3(0.3, 0.8, 0.2)
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_ere2x"]
 
@@ -47,16 +48,20 @@ shader_parameter/wave_speed = 1.2
 shader_parameter/wave_scale = 60.0
 shader_parameter/normal_scale = 0.1
 shader_parameter/specular_exponent = 10000000.0
+shader_parameter/specular_light_dir = Vector3(0.3, 0.8, 0.2)
 
 [node name="Planet" unique_id=739817206 instance=ExtResource("1_klx1d")]
 script = ExtResource("2_un6tk")
-radius = 30
-gravity_radius_multiplier = 1.5
-gravity_strength = 20.0
-constant_gravity = false
-generate_water = true
-water_radius_mult = 2.0
-water_color = Color(0.059, 0.592, 1, 1)
+radius = null
+gravity_radius_multiplier = null
+gravity_strength = null
+constant_gravity = null
+generate_water = null
+water_radius_mult = null
+water_color = null
+start_at = null
+chunk_size = null
+chunks = null
 density_generator = SubResource("Resource_jqiaj")
 
 [node name="GravitySource" parent="." index="2" unique_id=559080801 instance=ExtResource("2_25h14")]

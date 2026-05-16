@@ -16,7 +16,7 @@ uniform float wave_scale = 0.2;
 // Specular
 uniform float normal_scale = 0.25;
 uniform float specular_exponent = 32.0;
-
+uniform vec3 specular_light_dir = vec3(0.3, 0.8, 0.2);
 
 void vertex() {
 	float t = TIME * wave_speed;
@@ -25,8 +25,7 @@ void vertex() {
 	float wave1 = sin(VERTEX.x * wave_scale + t);
 	float wave2 = cos(VERTEX.z * wave_scale * 0.8 + t * 1.2);
 	
-	float combined_wave =
-		(wave1 + wave2) * 0.5;
+	float combined_wave = (wave1 + wave2) * 0.5;
 	
 	VERTEX += NORMAL * combined_wave * wave_height;
 }
@@ -63,11 +62,9 @@ void fragment() {
 	vec3 wave_normal_sample = texture(wave_normal, wave_uv).rgb;
 	wave_normal_sample = wave_normal_sample * 2.0 - 1.0; // 0, 1 -> -1, 1
 	
-	vec3 final_normal =
-	normalize(NORMAL + wave_normal_sample * normal_scale);
+	vec3 final_normal = normalize(NORMAL + wave_normal_sample * normal_scale);
 	
-	vec3 light_dir = normalize(vec3(0.3, 0.8, 0.2)); // debug
-	vec3 half_vector = normalize(light_dir + VIEW);
+	vec3 half_vector = normalize(normalize(specular_light_dir) + VIEW);
 	float spec = pow(max(dot(final_normal, half_vector), 0.0), specular_exponent);
 	
 	spec = smoothstep(0.0, 1.0, spec);

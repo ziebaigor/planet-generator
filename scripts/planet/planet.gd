@@ -11,6 +11,7 @@ extends MarchingCubes
 @export var generate_water := true
 @export var water_radius_mult := 2.0
 @export var water_color := Color(0.059, 0.592, 1.0)
+@export var directional_light : DirectionalLight3D
 
 @onready var gravity_source : GravitySource = $GravitySource
 @onready var water : MeshInstance3D = $Water
@@ -21,12 +22,14 @@ func _ready() -> void:
 	if "radius" in density_generator:
 		density_generator.base_radius = radius
 	
+	
 	# Gravity source
 	gravity_source.planet_radius = radius
 	
 	gravity_source.gravity_radius_multiplier = gravity_radius_multiplier
 	gravity_source.gravity_strength = gravity_strength
 	gravity_source.constant_gravity = constant_gravity
+	
 	
 	# Water
 	var water_r := radius * water_radius_mult
@@ -42,6 +45,11 @@ func _ready() -> void:
 	water.set_surface_override_material(0, mat)
 	mat.set_shader_parameter("shallow_color", water_color)
 	mat.set_shader_parameter("deep_color", _make_deep_water_color(water_color))
+	
+	if directional_light:
+		var sun_dir = -directional_light.global_transform.basis.z.normalized()
+		mat.set_shader_parameter("light_dir", sun_dir)
+	
 	
 	super._ready()
 
