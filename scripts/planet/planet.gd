@@ -39,12 +39,14 @@ func _ready() -> void:
 		water.get_node("WaterArea").set_enabled(false)
 	
 	water.scale = Vector3(water_r,water_r,water_r)
+	var deep_color := _make_deep_water_color(water_color)
+	water.get_node("WaterArea").water_tint_color = Color(deep_color, 0.4)
 	
 	var mat = water.get_active_material(0)
 	mat = mat.duplicate()
 	water.set_surface_override_material(0, mat)
 	mat.set_shader_parameter("shallow_color", water_color)
-	mat.set_shader_parameter("deep_color", _make_deep_water_color(water_color))
+	mat.set_shader_parameter("deep_color", deep_color)
 	
 	if directional_light:
 		var sun_dir = -directional_light.global_transform.basis.z.normalized()
