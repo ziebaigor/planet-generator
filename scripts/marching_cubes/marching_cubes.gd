@@ -1,10 +1,12 @@
+# TODO: SERIOUS refactorization
+
 class_name MarchingCubes
 extends Node3D
 
 @export_group("Generation Settings")
 @export var start_at := Vector3(-50,-50,-50)
 @export var chunk_size := 20
-@export var chunks := Vector3i(5,5,5)
+@export var chunks_amount := Vector3i(5,5,5)
 @export var density_generator : DensityGenerator = PlanetDensityGenerator.new()
 @export var color_generator : ColorGenerator = RadialColorGenerator.new()
 @export var mesh_material := StandardMaterial3D.new()
@@ -17,6 +19,8 @@ var processed_chunks := 0
 
 @onready var chunks_parent : Node3D = $Chunks
 
+# Dict of chunks { place in space (Vector3i) -> chunk node }
+var chunks : Dictionary[Vector3i, Node3D] = {}
 
 signal chunk_generation_started(chunk_coords : Vector3)
 signal chunk_generation_finished(chunk_coords : Vector3, chunk_node : MeshInstance3D)
@@ -32,30 +36,19 @@ func _ready() -> void:
 		mesh_material.vertex_color_use_as_albedo = true
 	mesh_generator.color_generator = color_generator
 	
+	generate_preview()
 	regenerate_mesh()
 
 
 func regenerate_mesh() -> void:
 	# Delete old chunks
-	for ch in chunks_parent.get_children():
-		ch.queue_free()
+	# for ch in chunks_parent.get_children():
+	#	ch.queue_free()
 	
 	planet_generation_started.emit()
 	processed_chunks = 0
 	
-	# TODO: TEMPORARY!
-	var chunk_coords : PackedVector3Array = []
-	for chunk_x in chunks.x:
-		for chunk_y in chunks.y:
-			for chunk_z in chunks.z:
-				var chunk_coord := start_at + Vector3(
-					chunk_size*chunk_x,
-					chunk_size*chunk_y,
-					chunk_size*chunk_z
-				)
-				
-				chunk_coords.append(chunk_coord)
-	
+	var chunk_coords := make_chunk_coords()
 	total_chunks = chunk_coords.size()
 	
 	var tasks : Array = []
@@ -67,17 +60,43 @@ func regenerate_mesh() -> void:
 		WorkerThreadPool.wait_for_task_completion(task)
 
 
+func generate_preview() -> void:
+	for chunk_pos in make_chunk_coords():
+		var arrays := mesh_generator.generate_mesh_arrays(chunk_pos, chunk_size, 10)
+		_apply_chunk_mesh(chunk_pos, arrays)
+
+
+func make_chunk_coords() -> PackedVector3Array:
+	# TODO: TEMPORARY!
+	var chunk_coords : PackedVector3Array = []
+	for chunk_x in chunks_amount.x:
+		for chunk_y in chunks_amount.y:
+			for chunk_z in chunks_amount.z:
+				var chunk_coord := start_at + Vector3(
+					chunk_size*chunk_x,
+					chunk_size*chunk_y,
+					chunk_size*chunk_z
+				)
+				
+				chunk_coords.append(chunk_coord)
+	
+	return chunk_coords
+
+
 func generate_chunk_task(start_pos : Vector3) -> void:
 	chunk_generation_started.emit.call_deferred(start_pos)
 	var arrays := mesh_generator.generate_mesh_arrays(start_pos, chunk_size)
 	
 	if arrays[0].size() != 0:
-		call_deferred("_apply_chunk_mesh", start_pos, arrays)
+		call_deferred("_apply_chunk_mesh_and_finailize", start_pos, arrays)
 	else:
 		call_deferred("_finalize_chunk", start_pos, null)
 
 
-func _apply_chunk_mesh(chunk_coord : Vector3, arrays : Array) -> void:
+func _apply_chunk_mesh(chunk_coord : Vector3i, arrays : Array) -> MeshInstance3D:
+	if chunks.has(chunk_coord):
+		chunks[chunk_coord].queue_free()
+	
 	var new_chunk := MeshInstance3D.new()
 	new_chunk.position = chunk_coord
 	chunks_parent.add_child(new_chunk)
@@ -97,12 +116,19 @@ func _apply_chunk_mesh(chunk_coord : Vector3, arrays : Array) -> void:
 	# Material
 	new_chunk.mesh.surface_set_material(0, mesh_material)
 	
-	_finalize_chunk(chunk_coord, new_chunk)
+	
+	chunks[chunk_coord] = new_chunk
+	return new_chunk
 
 
-func _finalize_chunk(chunk_coords : Vector3, chunk_node : MeshInstance3D) -> void:
+func _finalize_chunk(chunk_coords : Vector3i, chunk_node : MeshInstance3D) -> void:
 	processed_chunks += 1
 	chunk_generation_finished.emit(chunk_coords, chunk_node)
 	
 	if processed_chunks == total_chunks:
 		planet_generation_finished.emit()
+
+
+func _apply_chunk_mesh_and_finailize(chunk_coord : Vector3i, arrays : Array) -> void:
+	var new_chunk := _apply_chunk_mesh(chunk_coord, arrays)
+	_finalize_chunk(chunk_coord, new_chunk)
