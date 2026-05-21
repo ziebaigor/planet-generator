@@ -62,7 +62,7 @@ func regenerate_mesh() -> void:
 
 func generate_preview() -> void:
 	for chunk_pos in make_chunk_coords():
-		var arrays := mesh_generator.generate_mesh_arrays(chunk_pos, chunk_size, 10)
+		var arrays := mesh_generator.generate_mesh_arrays(chunk_pos, chunk_size, 20)
 		_apply_chunk_mesh(chunk_pos, arrays)
 
 

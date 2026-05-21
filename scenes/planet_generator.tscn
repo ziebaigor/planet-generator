@@ -3,6 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://cma760537lno2" path="res://scripts/planet/planet.tscn" id="1_57qqk"]
 [ext_resource type="Script" uid="uid://dsi223361ju3h" path="res://scripts/marching_cubes/mesh_generator/color_generators/radial_color_generator.gd" id="3_j0l1l"]
 [ext_resource type="Script" uid="uid://b5fljoi52b3r2" path="res://scripts/marching_cubes/mesh_generator/density_generators/planet_density_generator.gd" id="3_opjcv"]
+[ext_resource type="Script" uid="uid://bsgnrbkpc4oxt" path="res://scripts/generation_ui/generation_cam.gd" id="4_j0l1l"]
 [ext_resource type="Script" uid="uid://bds81nfyn3yw5" path="res://scripts/generation_ui/generation_ui_logic.gd" id="5_j0l1l"]
 
 [sub_resource type="Resource" id="Resource_jcijy"]
@@ -27,20 +28,23 @@ bg_color = Color(0.78288794, 0.5272463, 0.4549988, 1)
 
 [node name="PlanetGenerator" type="Node3D" unique_id=1789598939]
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=248660028]
-transform = Transform3D(0.98539007, 0.073149756, -0.15380353, 0.17031269, -0.42322767, 0.88987184, 0, -0.90306556, -0.4295027, 0, 25.477766, 44.385086)
+[node name="WORLD" type="Node3D" parent="." unique_id=1746338150]
+transform = Transform3D(1, -2.9802322e-08, 0, 0, 1.0000001, 0, 7.450581e-09, 0, 1.0000001, 6.556511e-07, -3.8146973e-06, -7.6293945e-06)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="WORLD" unique_id=248660028]
+transform = Transform3D(0.98539007, 0.07314974, -0.1538035, 0.17031267, -0.4232276, 0.8898717, -7.3417272e-09, -0.90306544, -0.42950264, 1.03645505e-07, 25.477766, 44.38509)
 light_indirect_energy = 3.0
 light_angular_distance = 1.0
 
-[node name="AmbientLight3D" type="DirectionalLight3D" parent="." unique_id=1652012005]
-transform = Transform3D(0.9851033, -0.073858716, 0.15529421, 0.17196336, 0.4231045, -0.889613, -9.315186e-09, 0.9030656, 0.42950264, 0, 25.477766, 44.385086)
+[node name="AmbientLight3D" type="DirectionalLight3D" parent="WORLD" unique_id=1652012005]
+transform = Transform3D(0.98510337, -0.07385871, 0.15529418, 0.17196336, 0.42310444, -0.88961285, -1.6654777e-08, 0.9030655, 0.4295026, 1.03645505e-07, 25.477766, 44.38509)
 light_color = Color(0.5112, 0.69012, 0.71, 1)
 light_energy = 0.304
 light_angular_distance = 1.0
 sky_mode = 1
 
-[node name="DefaultPlanet" parent="." unique_id=739817206 instance=ExtResource("1_57qqk")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -45)
+[node name="DefaultPlanet" parent="WORLD" unique_id=739817206 instance=ExtResource("1_57qqk")]
+transform = Transform3D(1, 2.9802319e-08, 0, 0, 0.9999999, 0, -7.4505797e-09, -2.2204455e-16, 0.9999999, -6.55651e-07, 3.8146968e-06, -44.99999)
 radius = 35
 gravity_radius_multiplier = 1.5
 gravity_strength = 25.0
@@ -53,28 +57,47 @@ chunk_size = 20
 density_generator = SubResource("Resource_jcijy")
 color_generator = SubResource("Resource_ipcg4")
 
-[node name="GenerationCam" type="Camera3D" parent="." unique_id=446180209]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 40)
-
-[node name="GenerationUILogic" type="Node" parent="." unique_id=1952801085 node_paths=PackedStringArray("scene_root", "generation_ui_root", "generation_cam")]
+[node name="UI" type="CanvasLayer" parent="." unique_id=252421876 node_paths=PackedStringArray("world_root", "generation_ui_root", "generation_cam")]
 script = ExtResource("5_j0l1l")
-scene_root = NodePath("..")
-generation_ui_root = NodePath("../UI/GenerationUI")
-generation_cam = NodePath("../GenerationCam")
+world_root = NodePath("../WORLD")
+generation_ui_root = NodePath("GenerationUI")
+generation_cam = NodePath("GenerationUI/GenerationCamViewport/SubViewport/CameraMovement/PitchPivot/GenerationCam")
 
-[node name="UI" type="CanvasLayer" parent="." unique_id=252421876]
-
-[node name="GenerationUI" type="Panel" parent="UI" unique_id=1715800835]
-anchors_preset = 11
-anchor_left = 1.0
+[node name="GenerationUI" type="HBoxContainer" parent="UI" unique_id=1560356526]
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -382.0
-grow_horizontal = 0
+grow_horizontal = 2
 grow_vertical = 2
+
+[node name="GenerationCamViewport" type="SubViewportContainer" parent="UI/GenerationUI" unique_id=514477854]
+layout_mode = 2
+size_flags_horizontal = 3
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="UI/GenerationUI/GenerationCamViewport" unique_id=2124435738]
+handle_input_locally = false
+size = Vector2i(765, 648)
+render_target_update_mode = 4
+
+[node name="CameraMovement" type="Node3D" parent="UI/GenerationUI/GenerationCamViewport/SubViewport" unique_id=1677208955 node_paths=PackedStringArray("target")]
+script = ExtResource("4_j0l1l")
+target = NodePath("../../../../../WORLD/DefaultPlanet")
+mouse_sensitivity = 3.0
+
+[node name="PitchPivot" type="Node3D" parent="UI/GenerationUI/GenerationCamViewport/SubViewport/CameraMovement" unique_id=1152715905]
+
+[node name="GenerationCam" type="Camera3D" parent="UI/GenerationUI/GenerationCamViewport/SubViewport/CameraMovement/PitchPivot" unique_id=446180209]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 40)
+current = true
+
+[node name="Panel" type="Panel" parent="UI/GenerationUI" unique_id=1715800835]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.5
 theme_override_styles/panel = SubResource("StyleBoxFlat_ylg2h")
 
-[node name="Button" type="Button" parent="UI/GenerationUI" unique_id=1029820388]
+[node name="ExploreButton" type="Button" parent="UI/GenerationUI/Panel" unique_id=1029820388]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -89,4 +112,4 @@ grow_horizontal = 2
 grow_vertical = 0
 text = "Explore"
 
-[connection signal="pressed" from="UI/GenerationUI/Button" to="GenerationUILogic" method="_on_explore_button_pressed"]
+[connection signal="pressed" from="UI/GenerationUI/Panel/ExploreButton" to="UI" method="_on_explore_button_pressed"]

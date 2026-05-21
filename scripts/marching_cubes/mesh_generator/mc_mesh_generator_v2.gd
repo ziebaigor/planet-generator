@@ -33,9 +33,9 @@ func generate_mesh_arrays(chunk_origin : Vector3i, size : int, resolution := 1) 
 	var vertex_cache : Dictionary = {}
 	
 	# 1-cube padding
-	for x in range(-1, size + 1, resolution):
-		for y in range(-1, size + 1, resolution):
-			for z in range(-1, size + 1, resolution):
+	for x in range(-resolution, size + resolution, resolution):
+		for y in range(-resolution, size + resolution, resolution):
+			for z in range(-resolution, size + resolution, resolution):
 	
 	# No padding
 	#for x in range(size):
