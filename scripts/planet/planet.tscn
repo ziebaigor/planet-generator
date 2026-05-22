@@ -10,7 +10,6 @@
 
 [sub_resource type="Resource" id="Resource_jqiaj"]
 script = ExtResource("3_un6tk")
-use_seed = false
 noise_scale = 2.0
 noise_octaves = 2
 metadata/_custom_type_script = "uid://c67846kv4ncmj"
@@ -52,16 +51,13 @@ shader_parameter/specular_light_dir = Vector3(0.3, 0.8, 0.2)
 
 [node name="Planet" unique_id=739817206 instance=ExtResource("1_klx1d")]
 script = ExtResource("2_un6tk")
-radius = null
-gravity_radius_multiplier = null
-gravity_strength = null
-constant_gravity = null
-generate_water = null
-water_radius_mult = null
-water_color = null
-start_at = null
-chunk_size = null
-chunks = null
+radius = 30.0
+gravity_radius_multiplier = 1.5
+gravity_strength = 20.0
+constant_gravity = false
+generate_water = true
+water_radius_mult = 2.0
+water_color = Color(0.059, 0.592, 1, 1)
 density_generator = SubResource("Resource_jqiaj")
 
 [node name="GravitySource" parent="." index="2" unique_id=559080801 instance=ExtResource("2_25h14")]

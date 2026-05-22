@@ -36,15 +36,19 @@ func _ready() -> void:
 		mesh_material.vertex_color_use_as_albedo = true
 	mesh_generator.color_generator = color_generator
 	
-	generate_preview()
-	regenerate_mesh()
+	regenerate()
 
 
-func regenerate_mesh() -> void:
+func regenerate() -> void:
 	# Delete old chunks
-	# for ch in chunks_parent.get_children():
-	#	ch.queue_free()
+	for ch in chunks_parent.get_children():
+		ch.queue_free()
 	
+	_generate_preview()
+	_generate_mesh()
+
+
+func _generate_mesh() -> void:
 	planet_generation_started.emit()
 	processed_chunks = 0
 	
@@ -60,7 +64,7 @@ func regenerate_mesh() -> void:
 		WorkerThreadPool.wait_for_task_completion(task)
 
 
-func generate_preview() -> void:
+func _generate_preview() -> void:
 	for chunk_pos in make_chunk_coords():
 		var arrays := mesh_generator.generate_mesh_arrays(chunk_pos, chunk_size, 20)
 		_apply_chunk_mesh(chunk_pos, arrays)
