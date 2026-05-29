@@ -1,5 +1,7 @@
 extends Node
 
+const PLAYER_SCENE := preload("res://scripts/player_controller/player_controller.tscn")
+
 const PLANET_SCENE := preload("res://scripts/planet/planet.tscn")
 const MAX_PLANETS := 8
 const PLANETS_DEFAULT_DISTANCE := 300.0
@@ -19,7 +21,7 @@ const PLANET_SELECT_ENTRY := preload("res://scripts/generation_ui/planet_select_
 
 var settings_fields : Array[PlanetSettingsField] = []
 
-const PLAYER_SCENE := preload("res://scripts/player_controller/player_controller.tscn")
+var needs_to_be_regenerated_queue : Array[Planet] = []
 
 
 func _ready() -> void:
@@ -40,12 +42,10 @@ func _ready() -> void:
 	
 	_refill_all_input_fields()
 	
-	# Entry for default planet
+	# Configure default planet
+	selected_planet.planet_generation_finished.connect(_on_planet_fully_generated)
 	_add_planet_entry_for_planet(selected_planet)
 
-
-func _process(delta: float) -> void:
-	print(selected_planet)
 
 #
 # SETTINGS INPUT FIELDS
@@ -98,9 +98,27 @@ func _input_field_value_changed(property : String, new_value) -> void:
 		print("GenerationUILogic: Property \'%s\' not found!" % property)
 
 func _regenerate_planet() -> void:
-	selected_planet.regenerate()
+	if selected_planet.is_fully_generated():
+		selected_planet.regenerate()
+	else:
+		print("Cannot regenerate now, adding to queue...")
+		needs_to_be_regenerated_queue.append(selected_planet)
+
+func _on_planet_fully_generated() -> void:
+	var to_regen : Array[Planet] = []
+	for planet in _get_planets():
+		if needs_to_be_regenerated_queue.has(planet) &&\
+		   planet.is_fully_generated():
+			to_regen.append(planet)
+	
+	for planet in to_regen:
+		planet.regenerate()
+		needs_to_be_regenerated_queue.erase(planet)
 
 
+func _on_randomize_seed_button_pressed() -> void:
+	_input_field_value_changed("random_seed", randi())
+	_refill_all_input_fields()
 
 #
 # POSITION INPUT FIELD
@@ -170,6 +188,10 @@ func _set_selected_planet(planet : Planet) -> void:
 	_refresh_planets_ui_visuals()
 
 func _delete_planet(planet : Planet) -> void:
+	if !planet.is_fully_generated():
+		print("Cannot delete until generation finishes!")
+		return
+	
 	var needs_to_change_selected := false
 	if selected_planet == planet:
 		needs_to_change_selected = true

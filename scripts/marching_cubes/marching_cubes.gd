@@ -28,6 +28,7 @@ signal planet_generation_started()
 signal planet_generation_finished()
 
 
+
 func _ready() -> void:
 	mesh_generator.density_generator = density_generator
 	density_generator.initialize()
@@ -47,6 +48,9 @@ func regenerate() -> void:
 	_generate_preview()
 	_generate_mesh()
 
+
+func is_fully_generated() -> bool:
+	return total_chunks == processed_chunks
 
 func _generate_mesh() -> void:
 	planet_generation_started.emit()

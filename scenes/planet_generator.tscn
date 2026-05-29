@@ -51,7 +51,7 @@ sky_mode = 1
 [node name="PLANETS" type="Node3D" parent="WORLD" unique_id=1622127944]
 
 [node name="DefaultPlanet" parent="WORLD/PLANETS" unique_id=739817206 node_paths=PackedStringArray("directional_light") instance=ExtResource("1_57qqk")]
-transform = Transform3D(1, 2.9802319e-08, 0, 0, 0.9999999, 0, -7.4505797e-09, -2.2204455e-16, 0.9999999, -6.55651e-07, 3.8146968e-06, -44.99999)
+transform = Transform3D(1, 2.9802319e-08, 0, 0, 0.9999999, 0, -7.4505797e-09, -2.2204455e-16, 0.9999999, 0, 0, 0)
 gravity_strength = 25.0
 directional_light = NodePath("../../DirectionalLight3D")
 density_generator = SubResource("Resource_jcijy")
@@ -227,9 +227,11 @@ text = "Seed"
 
 [node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/Seed" unique_id=56308241 instance=ExtResource("6_aij2p")]
 layout_mode = 2
+constrain_min = null
+constrain_max = null
 connected_property = "random_seed"
 
-[node name="Button" type="Button" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/Seed" unique_id=1950126550]
+[node name="RandomizeSeedButton" type="Button" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/Seed" unique_id=1950126550]
 custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
 icon = ExtResource("6_opjcv")
@@ -248,6 +250,8 @@ text = "Radius"
 
 [node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/Radius" unique_id=335851884 instance=ExtResource("6_aij2p")]
 layout_mode = 2
+constrain_min = null
+constrain_max = null
 connected_property = "radius"
 
 [node name="NoiseAmplitude" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1132439173]
@@ -261,6 +265,8 @@ text = "Noise Amplitude"
 
 [node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/NoiseAmplitude" unique_id=1047554455 instance=ExtResource("6_aij2p")]
 layout_mode = 2
+constrain_min = null
+constrain_max = null
 connected_property = "noise_amplitude"
 
 [node name="NoiseFrequency" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=21913611]
@@ -274,6 +280,8 @@ text = "Noise Frequency"
 
 [node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/NoiseFrequency" unique_id=1195953983 instance=ExtResource("6_aij2p")]
 layout_mode = 2
+constrain_min = null
+constrain_max = null
 connected_property = "noise_frequency"
 
 [node name="NoiseOctaves" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=812570884]
@@ -287,6 +295,8 @@ text = "Noise Octaves"
 
 [node name="NoiseOctavesInput" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/NoiseOctaves" unique_id=1179695684 instance=ExtResource("6_aij2p")]
 layout_mode = 2
+constrain_min = null
+constrain_max = null
 connected_property = "noise_octaves"
 
 [node name="NoiseLacunarity" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1496627342]
@@ -300,6 +310,8 @@ text = "Noise Lacun."
 
 [node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/NoiseLacunarity" unique_id=733192930 instance=ExtResource("6_aij2p")]
 layout_mode = 2
+constrain_min = null
+constrain_max = null
 connected_property = "noise_lacunarity"
 
 [node name="NoiseGain" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=2066263879]
@@ -313,6 +325,8 @@ text = "Noise Gain"
 
 [node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/NoiseGain" unique_id=2060597355 instance=ExtResource("6_aij2p")]
 layout_mode = 2
+constrain_min = null
+constrain_max = null
 connected_property = "noise_gain"
 
 [node name="HSeparator2" type="HSeparator" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1436882175]
@@ -334,8 +348,9 @@ text = "G. Radius Mult."
 
 [node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/GravRadiusMult" unique_id=1541559219 instance=ExtResource("6_aij2p")]
 layout_mode = 2
+constrain_min = null
+constrain_max = null
 connected_property = "gravity_radius_multiplier"
-causes_regeneration = false
 
 [node name="GravStrength" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1517367704]
 custom_minimum_size = Vector2(200, 0)
@@ -348,8 +363,9 @@ text = "G. Strength"
 
 [node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/GravStrength" unique_id=1536625697 instance=ExtResource("6_aij2p")]
 layout_mode = 2
+constrain_min = null
+constrain_max = null
 connected_property = "gravity_strength"
-causes_regeneration = false
 
 [node name="GravConst" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=442909905]
 custom_minimum_size = Vector2(200, 0)
@@ -364,7 +380,6 @@ text = "Const. Gravity"
 layout_mode = 2
 size_flags_horizontal = 10
 connected_property = "constant_gravity"
-causes_regeneration = false
 
 [node name="HSeparator3" type="HSeparator" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=2049761481]
 layout_mode = 2
@@ -387,7 +402,6 @@ text = "Water"
 layout_mode = 2
 size_flags_horizontal = 10
 connected_property = "generate_water"
-causes_regeneration = false
 
 [node name="WaterRadiusMult" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1263537590]
 custom_minimum_size = Vector2(200, 0)
@@ -400,8 +414,9 @@ text = "Water Size Mult."
 
 [node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/WaterRadiusMult" unique_id=3099991 instance=ExtResource("6_aij2p")]
 layout_mode = 2
+constrain_min = null
+constrain_max = null
 connected_property = "water_radius_mult"
-causes_regeneration = false
 
 [node name="WaterColor" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=2067299569]
 custom_minimum_size = Vector2(200, 0)
@@ -416,7 +431,6 @@ text = "Water Color"
 layout_mode = 2
 size_flags_horizontal = 10
 connected_property = "water_color"
-causes_regeneration = false
 
 [node name="ExploreButton" type="Button" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer" unique_id=1029820388]
 layout_mode = 2
@@ -425,4 +439,5 @@ size_flags_vertical = 4
 text = "Explore"
 
 [connection signal="pressed" from="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/SELECT_PLANET/MarginContainer/VBoxContainer/AddPlanetButton" to="UI" method="_on_add_planet_button_pressed"]
+[connection signal="pressed" from="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/Seed/RandomizeSeedButton" to="UI" method="_on_randomize_seed_button_pressed"]
 [connection signal="pressed" from="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/ExploreButton" to="UI" method="_on_explore_button_pressed"]
