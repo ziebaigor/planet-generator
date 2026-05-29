@@ -1,0 +1,484 @@
+[gd_scene format=3 uid="uid://cugq6svifa7tc"]
+
+[ext_resource type="PackedScene" uid="uid://cma760537lno2" path="res://scripts/planet/planet.tscn" id="1_57qqk"]
+[ext_resource type="Script" uid="uid://dsi223361ju3h" path="res://scripts/marching_cubes/mesh_generator/color_generators/radial_color_generator.gd" id="3_j0l1l"]
+[ext_resource type="Script" uid="uid://b5fljoi52b3r2" path="res://scripts/marching_cubes/mesh_generator/density_generators/planet_density_generator.gd" id="3_opjcv"]
+[ext_resource type="Script" uid="uid://bsgnrbkpc4oxt" path="res://scripts/generation_ui/generation_cam.gd" id="4_j0l1l"]
+[ext_resource type="Script" uid="uid://bds81nfyn3yw5" path="res://scripts/generation_ui/generation_ui_logic.gd" id="5_j0l1l"]
+[ext_resource type="PackedScene" uid="uid://psdqsrxhufp" path="res://scripts/generation_ui/settings_fields/planet_settings_input_field.tscn" id="6_aij2p"]
+[ext_resource type="Script" uid="uid://bnepe47wh0hem" path="res://scripts/generation_ui/position_input.gd" id="6_jcijy"]
+[ext_resource type="Texture2D" uid="uid://bhvmjd0qypp0h" path="res://scripts/generation_ui/578172_refresh-icon-png-1244205847.png" id="6_opjcv"]
+[ext_resource type="PackedScene" uid="uid://ds4je1vri7xoc" path="res://scripts/generation_ui/settings_fields/planet_settings_checkbutton.tscn" id="9_ipcg4"]
+[ext_resource type="PackedScene" uid="uid://ueefup2fgaxk" path="res://scripts/generation_ui/settings_fields/planet_settings_color_picker.tscn" id="10_fcntt"]
+
+[sub_resource type="Resource" id="Resource_jcijy"]
+script = ExtResource("3_opjcv")
+random_seed = 100
+noise_amplitude = 10.0
+noise_octaves = 2
+metadata/_custom_type_script = "uid://b5fljoi52b3r2"
+
+[sub_resource type="Gradient" id="Gradient_8b61e"]
+offsets = PackedFloat32Array(0.481982, 0.9015151, 0.94949496)
+colors = PackedColorArray(0.22, 0.22, 0.22, 1, 0.63, 0.42955503, 0.10710001, 1, 0.32957166, 0.91, 0.10010002, 1)
+
+[sub_resource type="Resource" id="Resource_ipcg4"]
+script = ExtResource("3_j0l1l")
+color_gradient = SubResource("Gradient_8b61e")
+color_gradient_height = 35
+metadata/_custom_type_script = "uid://dsi223361ju3h"
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ylg2h"]
+bg_color = Color(0.78288794, 0.5272463, 0.4549988, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_fcntt"]
+font_size = 12
+font_color = Color(1, 0.100000024, 0.100000024, 1)
+
+[sub_resource type="Gradient" id="Gradient_fcntt"]
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_pdtbk"]
+gradient = SubResource("Gradient_fcntt")
+
+[node name="PlanetGenerator" type="Node3D" unique_id=1789598939]
+
+[node name="WORLD" type="Node3D" parent="." unique_id=1746338150]
+transform = Transform3D(1, -2.9802322e-08, 0, 0, 1.0000001, 0, 7.450581e-09, 0, 1.0000001, 6.556511e-07, -3.8146973e-06, -7.6293945e-06)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="WORLD" unique_id=248660028]
+transform = Transform3D(0.98539007, 0.07314974, -0.1538035, 0.17031267, -0.4232276, 0.8898717, -7.3417272e-09, -0.90306544, -0.42950264, 1.03645505e-07, 25.477766, 44.38509)
+light_indirect_energy = 3.0
+light_angular_distance = 1.0
+
+[node name="AmbientLight3D" type="DirectionalLight3D" parent="WORLD" unique_id=1652012005]
+transform = Transform3D(0.98510337, -0.07385871, 0.15529418, 0.17196336, 0.42310444, -0.88961285, -1.6654777e-08, 0.9030655, 0.4295026, 1.03645505e-07, 25.477766, 44.38509)
+light_color = Color(0.5112, 0.69012, 0.71, 1)
+light_energy = 0.304
+light_angular_distance = 1.0
+sky_mode = 1
+
+[node name="PLANETS" type="Node3D" parent="WORLD" unique_id=1622127944]
+
+[node name="DefaultPlanet" parent="WORLD/PLANETS" unique_id=739817206 node_paths=PackedStringArray("directional_light") instance=ExtResource("1_57qqk")]
+transform = Transform3D(1, 2.9802319e-08, 0, 0, 0.9999999, 0, -7.4505797e-09, -2.2204455e-16, 0.9999999, 0, 0, 0)
+gravity_strength = 25.0
+directional_light = NodePath("../../DirectionalLight3D")
+density_generator = SubResource("Resource_jcijy")
+color_generator = SubResource("Resource_ipcg4")
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=252421876 node_paths=PackedStringArray("world_root", "generation_ui_root", "generation_cam", "cam_root", "planets_parent", "ui_planet_entries_parent", "selected_planet")]
+script = ExtResource("5_j0l1l")
+world_root = NodePath("../WORLD")
+generation_ui_root = NodePath("GenerationUI")
+generation_cam = NodePath("GenerationUI/GenerationCamViewport/SubViewport/CameraMovement/PitchPivot/GenerationCam")
+cam_root = NodePath("GenerationUI/GenerationCamViewport/SubViewport/CameraMovement")
+planets_parent = NodePath("../WORLD/PLANETS")
+ui_planet_entries_parent = NodePath("GenerationUI/Panel/MarginContainer/VBoxContainer/SELECT_PLANET/MarginContainer/VBoxContainer/ScrollContainer/PlanetSelectEntriesParent")
+selected_planet = NodePath("../WORLD/PLANETS/DefaultPlanet")
+
+[node name="GenerationUI" type="HBoxContainer" parent="UI" unique_id=1560356526]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GenerationCamViewport" type="SubViewportContainer" parent="UI/GenerationUI" unique_id=514477854]
+layout_mode = 2
+size_flags_horizontal = 3
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="UI/GenerationUI/GenerationCamViewport" unique_id=2124435738]
+handle_input_locally = false
+size = Vector2i(765, 648)
+render_target_update_mode = 4
+
+[node name="CameraMovement" type="Node3D" parent="UI/GenerationUI/GenerationCamViewport/SubViewport" unique_id=1677208955 node_paths=PackedStringArray("target")]
+script = ExtResource("4_j0l1l")
+target = NodePath("../../../../../WORLD/PLANETS/DefaultPlanet")
+mouse_sensitivity = 3.0
+
+[node name="PitchPivot" type="Node3D" parent="UI/GenerationUI/GenerationCamViewport/SubViewport/CameraMovement" unique_id=1152715905]
+
+[node name="GenerationCam" type="Camera3D" parent="UI/GenerationUI/GenerationCamViewport/SubViewport/CameraMovement/PitchPivot" unique_id=446180209]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 40)
+current = true
+
+[node name="Panel" type="Panel" parent="UI/GenerationUI" unique_id=1715800835]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.5
+theme_override_styles/panel = SubResource("StyleBoxFlat_ylg2h")
+
+[node name="MarginContainer" type="MarginContainer" parent="UI/GenerationUI/Panel" unique_id=1190664785]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer" unique_id=377693248]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="SELECT_PLANET" type="Panel" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer" unique_id=923035984]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.4
+
+[node name="MarginContainer" type="MarginContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/SELECT_PLANET" unique_id=42139198]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/SELECT_PLANET/MarginContainer" unique_id=918069316]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/SELECT_PLANET/MarginContainer/VBoxContainer" unique_id=1795330144]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PlanetSelectEntriesParent" type="VBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/SELECT_PLANET/MarginContainer/VBoxContainer/ScrollContainer" unique_id=2111731137]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="AddPlanetButton" type="Button" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/SELECT_PLANET/MarginContainer/VBoxContainer" unique_id=127413882]
+layout_mode = 2
+text = "Add Planet"
+
+[node name="PLANET_SETTINGS" type="Panel" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer" unique_id=80166777]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS" unique_id=907547003]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="PlanetSettingsScroll" type="ScrollContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer" unique_id=1765075040]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll" unique_id=1389441039]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1523392369]
+layout_mode = 2
+text = "Position"
+
+[node name="PositionInput" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=987558869]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("6_jcijy")
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/PositionInput" unique_id=299044469]
+layout_mode = 2
+text = "X"
+
+[node name="xInput" type="LineEdit" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/PositionInput" unique_id=1518534743]
+layout_mode = 2
+text = "0"
+
+[node name="Label2" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/PositionInput" unique_id=639692160]
+layout_mode = 2
+text = "Y"
+
+[node name="yInput" type="LineEdit" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/PositionInput" unique_id=1340879401]
+layout_mode = 2
+text = "0"
+
+[node name="Label3" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/PositionInput" unique_id=1581709186]
+layout_mode = 2
+text = "Z"
+
+[node name="zInput" type="LineEdit" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/PositionInput" unique_id=1468929648]
+layout_mode = 2
+text = "0"
+
+[node name="HSeparator4" type="HSeparator" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1797304712]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Label5" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1134270377]
+layout_mode = 2
+text = "Surfuce Color"
+
+[node name="ColorWarning" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=788538159]
+layout_mode = 2
+text = "For now gradients cannot be modified directly, and can only be randomized!"
+label_settings = SubResource("LabelSettings_fcntt")
+autowrap_mode = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1950103985]
+layout_mode = 2
+
+[node name="SurfuceGradient" type="TextureRect" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/HBoxContainer" unique_id=679418816]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+size_flags_horizontal = 3
+texture = SubResource("GradientTexture1D_pdtbk")
+
+[node name="RandomizeSurfuceColor" type="Button" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/HBoxContainer" unique_id=854310001]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
+icon = ExtResource("6_opjcv")
+icon_alignment = 1
+vertical_icon_alignment = 0
+expand_icon = true
+
+[node name="HSeparator" type="HSeparator" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=664698983]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Label2" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=654576976]
+layout_mode = 2
+text = "Generation Settings"
+
+[node name="Seed" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=102992163]
+custom_minimum_size = Vector2(236, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/Seed" unique_id=1999284571]
+layout_mode = 2
+text = "Seed"
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/Seed" unique_id=56308241 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+constrain_min = null
+constrain_max = null
+connected_property = "random_seed"
+
+[node name="RandomizeSeedButton" type="Button" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/Seed" unique_id=1950126550]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
+icon = ExtResource("6_opjcv")
+icon_alignment = 1
+vertical_icon_alignment = 0
+expand_icon = true
+
+[node name="Radius" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1075283722]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/Radius" unique_id=1740289618]
+layout_mode = 2
+text = "Radius"
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/Radius" unique_id=335851884 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+constrain_min = null
+constrain_max = null
+connected_property = "radius"
+
+[node name="NoiseAmplitude" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1132439173]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/NoiseAmplitude" unique_id=1275589644]
+layout_mode = 2
+text = "Noise Amplitude"
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/NoiseAmplitude" unique_id=1047554455 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+constrain_min = null
+constrain_max = null
+connected_property = "noise_amplitude"
+
+[node name="NoiseFrequency" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=21913611]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/NoiseFrequency" unique_id=229284140]
+layout_mode = 2
+text = "Noise Frequency"
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/NoiseFrequency" unique_id=1195953983 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+constrain_min = null
+constrain_max = null
+connected_property = "noise_frequency"
+
+[node name="NoiseOctaves" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=812570884]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/NoiseOctaves" unique_id=1311368888]
+layout_mode = 2
+text = "Noise Octaves"
+
+[node name="NoiseOctavesInput" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/NoiseOctaves" unique_id=1179695684 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+constrain_min = null
+constrain_max = null
+connected_property = "noise_octaves"
+
+[node name="NoiseLacunarity" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1496627342]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/NoiseLacunarity" unique_id=270814700]
+layout_mode = 2
+text = "Noise Lacun."
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/NoiseLacunarity" unique_id=733192930 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+constrain_min = null
+constrain_max = null
+connected_property = "noise_lacunarity"
+
+[node name="NoiseGain" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=2066263879]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/NoiseGain" unique_id=985866947]
+layout_mode = 2
+text = "Noise Gain"
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/NoiseGain" unique_id=2060597355 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+constrain_min = null
+constrain_max = null
+connected_property = "noise_gain"
+
+[node name="HSeparator2" type="HSeparator" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1436882175]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Label3" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1523988541]
+layout_mode = 2
+text = "Gravity Settings"
+
+[node name="GravRadiusMult" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1417513406]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/GravRadiusMult" unique_id=365432159]
+layout_mode = 2
+text = "G. Radius Mult."
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/GravRadiusMult" unique_id=1541559219 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+constrain_min = null
+constrain_max = null
+connected_property = "gravity_radius_multiplier"
+
+[node name="GravStrength" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1517367704]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/GravStrength" unique_id=694503597]
+layout_mode = 2
+text = "G. Strength"
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/GravStrength" unique_id=1536625697 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+constrain_min = null
+constrain_max = null
+connected_property = "gravity_strength"
+
+[node name="GravConst" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=442909905]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/GravConst" unique_id=308799715]
+layout_mode = 2
+text = "Const. Gravity"
+
+[node name="CheckButton" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/GravConst" unique_id=40239630 instance=ExtResource("9_ipcg4")]
+layout_mode = 2
+size_flags_horizontal = 10
+connected_property = "constant_gravity"
+
+[node name="HSeparator3" type="HSeparator" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=2049761481]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Label4" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1914074281]
+layout_mode = 2
+text = "Water Settings"
+
+[node name="GenerateWater" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=592467522]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/GenerateWater" unique_id=397841806]
+layout_mode = 2
+text = "Water"
+
+[node name="CheckButton" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/GenerateWater" unique_id=797504692 instance=ExtResource("9_ipcg4")]
+layout_mode = 2
+size_flags_horizontal = 10
+connected_property = "generate_water"
+
+[node name="WaterRadiusMult" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1263537590]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/WaterRadiusMult" unique_id=1710701332]
+layout_mode = 2
+text = "Water Size Mult."
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/WaterRadiusMult" unique_id=3099991 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+constrain_min = null
+constrain_max = null
+connected_property = "water_radius_mult"
+
+[node name="WaterColor" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=2067299569]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/WaterColor" unique_id=55631270]
+layout_mode = 2
+text = "Water Color"
+
+[node name="ColorPicker" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/WaterColor" unique_id=1898167749 instance=ExtResource("10_fcntt")]
+layout_mode = 2
+size_flags_horizontal = 10
+connected_property = "water_color"
+
+[node name="ExploreButton" type="Button" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer" unique_id=1029820388]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+text = "Explore"
+
+[connection signal="pressed" from="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/SELECT_PLANET/MarginContainer/VBoxContainer/AddPlanetButton" to="UI" method="_on_add_planet_button_pressed"]
+[connection signal="pressed" from="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/HBoxContainer/RandomizeSurfuceColor" to="UI" method="_on_randomize_surfuce_color_pressed"]
+[connection signal="pressed" from="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/Seed/RandomizeSeedButton" to="UI" method="_on_randomize_seed_button_pressed"]
+[connection signal="pressed" from="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/ExploreButton" to="UI" method="_on_explore_button_pressed"]

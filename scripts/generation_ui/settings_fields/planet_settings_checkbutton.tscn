@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://ds4je1vri7xoc"]
+
+[ext_resource type="Script" uid="uid://i6ovbs0l0vj4" path="res://scripts/generation_ui/settings_fields/planet_settings_checkbutton.gd" id="1_ve4t4"]
+
+[node name="CheckButton" type="CheckButton" unique_id=40239630]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ve4t4")
+
+[connection signal="toggled" from="." to="." method="_on_toggled"]

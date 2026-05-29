@@ -20,7 +20,7 @@ const CUBE_CORNERS : Array[Vector3i] = [
 ]
 
 
-func generate_mesh_arrays(chunk_origin : Vector3i, size : int) -> Array:
+func generate_mesh_arrays(chunk_origin : Vector3i, size : int, resolution := 1) -> Array:
 	var vertices : PackedVector3Array = []
 	var indices : PackedInt32Array = []
 	var normals : PackedVector3Array = []
@@ -33,9 +33,9 @@ func generate_mesh_arrays(chunk_origin : Vector3i, size : int) -> Array:
 	var vertex_cache : Dictionary = {}
 	
 	# 1-cube padding
-	for x in range(-1, size + 1):
-		for y in range(-1, size + 1):
-			for z in range(-1, size + 1):
+	for x in range(-resolution, size + resolution, resolution):
+		for y in range(-resolution, size + resolution, resolution):
+			for z in range(-resolution, size + resolution, resolution):
 	
 	# No padding
 	#for x in range(size):
@@ -61,7 +61,8 @@ func generate_mesh_arrays(chunk_origin : Vector3i, size : int) -> Array:
 					indices,
 					normals,
 					colors,
-					is_padding
+					is_padding,
+					resolution
 				)
 	
 	# Normalize normals
@@ -93,7 +94,8 @@ func _calculate_cube_verts(
 	indices : PackedInt32Array,
 	normals : PackedVector3Array,
 	colors : PackedColorArray,
-	is_padding : bool
+	is_padding : bool,
+	resolution := 1
 ) -> void:
 	
 	var corner_positions : Array[Vector3i] = []
@@ -103,7 +105,7 @@ func _calculate_cube_verts(
 	
 	# Sample cube corners
 	for i in range(8):
-		var pos = start_pos + CUBE_CORNERS[i]
+		var pos = start_pos + CUBE_CORNERS[i] * resolution
 		
 		corner_positions.append(pos)
 		

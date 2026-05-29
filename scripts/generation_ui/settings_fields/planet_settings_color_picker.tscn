@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://ueefup2fgaxk"]
+
+[ext_resource type="Script" uid="uid://c688ks047hvwa" path="res://scripts/generation_ui/settings_fields/planet_settings_color_picker.gd" id="1_u7lxv"]
+
+[node name="ColorPicker" type="ColorPickerButton" unique_id=1898167749]
+custom_minimum_size = Vector2(50, 0)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_u7lxv")
+
+[connection signal="color_changed" from="." to="." method="_on_color_changed"]

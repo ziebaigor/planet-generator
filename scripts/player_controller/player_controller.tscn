@@ -15,7 +15,7 @@ radius = 0.02
 transparency = 1
 cull_mode = 1
 shading_mode = 0
-albedo_color = Color(0.017999982, 0.4737, 0.9, 0.46666667)
+albedo_color = Color(0.8945246, 0, 0.26487797, 0.46666667)
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_0bh36"]
 radius = 0.8

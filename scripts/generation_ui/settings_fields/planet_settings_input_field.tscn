@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://psdqsrxhufp"]
+
+[ext_resource type="Script" uid="uid://m2b6n8aagubj" path="res://scripts/generation_ui/settings_fields/planet_settings_input_field.gd" id="1_r1u83"]
+
+[node name="InputField" type="LineEdit" unique_id=1541559219]
+size_flags_horizontal = 10
+text = "0"
+script = ExtResource("1_r1u83")
+
+[connection signal="focus_exited" from="." to="." method="_on_focus_exited"]
+[connection signal="text_submitted" from="." to="." method="_on_text_submitted"]
