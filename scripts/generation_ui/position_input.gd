@@ -21,6 +21,9 @@ func _ready() -> void:
 	request_fill_me.emit(self)
 
 func set_pos(new_pos : Vector3) -> void:
+	if !is_node_ready():
+		await ready
+	
 	x_input.text = str(new_pos.x)
 	y_input.text = str(new_pos.y)
 	z_input.text = str(new_pos.z)

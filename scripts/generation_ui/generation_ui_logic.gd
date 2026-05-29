@@ -63,6 +63,8 @@ func _find_field_children_recursively(parent : Node, found : Array[PlanetSetting
 func _refill_all_input_fields() -> void:
 	for input_field in settings_fields:
 		_fill_input_field(input_field, input_field.connected_property)
+	
+	_fill_position_input()
 
 func _on_explore_button_pressed() -> void:
 	generation_ui_root.hide()
@@ -126,7 +128,8 @@ func _on_randomize_seed_button_pressed() -> void:
 func _on_position_input_position_changed(new_pos : Vector3) -> void:
 	selected_planet.global_position = new_pos
 
-func _fill_position_input(pos_input : PositionInput) -> void:
+func _fill_position_input() -> void:
+	var pos_input : PositionInput = %PositionInput
 	pos_input.set_pos(selected_planet.global_position)
 
 
