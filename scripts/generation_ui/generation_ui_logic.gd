@@ -65,6 +65,7 @@ func _refill_all_input_fields() -> void:
 		_fill_input_field(input_field, input_field.connected_property)
 	
 	_fill_position_input()
+	%SurfuceGradient.texture.gradient = selected_planet.color_generator.color_gradient
 
 func _on_explore_button_pressed() -> void:
 	generation_ui_root.hide()
@@ -102,7 +103,7 @@ func _input_field_value_changed(property : String, new_value) -> void:
 func _regenerate_planet() -> void:
 	if selected_planet.is_fully_generated():
 		selected_planet.regenerate()
-	else:
+	elif !needs_to_be_regenerated_queue.has(selected_planet):
 		print("Cannot regenerate now, adding to queue...")
 		needs_to_be_regenerated_queue.append(selected_planet)
 
@@ -116,7 +117,6 @@ func _on_planet_fully_generated() -> void:
 	for planet in to_regen:
 		planet.regenerate()
 		needs_to_be_regenerated_queue.erase(planet)
-
 
 func _on_randomize_seed_button_pressed() -> void:
 	_input_field_value_changed("random_seed", randi())
@@ -141,7 +141,7 @@ func _get_planets() -> Array[Planet]:
 	var planets : Array[Planet] = []
 	
 	for ch in planets_parent.get_children():
-		if ch is Planet:
+		if ch is Planet && !ch.is_queued_for_deletion():
 			planets.append(ch as Planet)
 	
 	return planets
@@ -160,8 +160,10 @@ func _on_add_planet_button_pressed() -> void:
 	var new_planet := PLANET_SCENE.instantiate()
 	new_planet.position = _get_default_position_for_planet(num_planets)
 	planets_parent.add_child(new_planet)
+	
 	new_planet.density_generator.random_seed = randi()
 	new_planet.water_color = Color(randf(), randf(), randf())
+	new_planet.color_generator.color_gradient = make_random_gradient(randi_range(2,6))
 	
 	_add_planet_entry_for_planet(new_planet)
 	_set_selected_planet(new_planet)
@@ -199,7 +201,6 @@ func _delete_planet(planet : Planet) -> void:
 	if selected_planet == planet:
 		needs_to_change_selected = true
 	
-	
 	planet.queue_free()
 	for ch in ui_planet_entries_parent.get_children():
 		if ch is PlanetSelectEntry:
@@ -207,8 +208,53 @@ func _delete_planet(planet : Planet) -> void:
 				ch.queue_free()
 				break
 	
-	
 	if needs_to_change_selected:
 		_set_selected_planet(_get_planets()[0])
 	
 	_refresh_planets_ui_visuals()
+
+
+func make_random_gradient(color_count: int = 4) -> Gradient:
+	var gradient := Gradient.new()
+	
+	var colors: PackedColorArray = []
+	var offsets: PackedFloat32Array = []
+	
+	for i in range(color_count):
+		# Random color
+		colors.append(Color(
+			randf(),
+			randf(),
+			randf(),
+			1.0
+		))
+	
+		# Randomized offset
+		var t := float(i) / float(max(color_count - 1, 1))
+	
+		# Add some randomness while keeping order
+		var random_offset : float = clamp(
+			t + randf_range(-0.15, 0.15),
+			0.0,
+			1.0
+		)
+		
+		offsets.append(random_offset)
+	
+	# Ensure offsets stay sorted
+	offsets.sort()
+	
+	# Force exact endpoints
+	offsets[0] = 0.0
+	offsets[offsets.size() - 1] = 1.0
+	
+	gradient.colors = colors
+	gradient.offsets = offsets
+	
+	return gradient
+
+
+func _on_randomize_surfuce_color_pressed() -> void:
+	selected_planet.color_generator.color_gradient = make_random_gradient(randi_range(2,6))
+	_refill_all_input_fields()
+	_regenerate_planet()

@@ -31,6 +31,15 @@ metadata/_custom_type_script = "uid://dsi223361ju3h"
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ylg2h"]
 bg_color = Color(0.78288794, 0.5272463, 0.4549988, 1)
 
+[sub_resource type="LabelSettings" id="LabelSettings_fcntt"]
+font_size = 12
+font_color = Color(1, 0.100000024, 0.100000024, 1)
+
+[sub_resource type="Gradient" id="Gradient_fcntt"]
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_pdtbk"]
+gradient = SubResource("Gradient_fcntt")
+
 [node name="PlanetGenerator" type="Node3D" unique_id=1789598939]
 
 [node name="WORLD" type="Node3D" parent="." unique_id=1746338150]
@@ -169,7 +178,6 @@ theme_override_constants/margin_bottom = 10
 [node name="PlanetSettingsScroll" type="ScrollContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer" unique_id=1765075040]
 layout_mode = 2
 size_flags_vertical = 3
-scroll_vertical = 100
 horizontal_scroll_mode = 0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll" unique_id=1389441039]
@@ -207,6 +215,38 @@ text = "Z"
 [node name="zInput" type="LineEdit" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/PositionInput" unique_id=1468929648]
 layout_mode = 2
 text = "0"
+
+[node name="HSeparator4" type="HSeparator" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1797304712]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Label5" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1134270377]
+layout_mode = 2
+text = "Surfuce Color"
+
+[node name="ColorWarning" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=788538159]
+layout_mode = 2
+text = "For now gradients cannot be modified directly, and can only be randomized!"
+label_settings = SubResource("LabelSettings_fcntt")
+autowrap_mode = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=1950103985]
+layout_mode = 2
+
+[node name="SurfuceGradient" type="TextureRect" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/HBoxContainer" unique_id=679418816]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+size_flags_horizontal = 3
+texture = SubResource("GradientTexture1D_pdtbk")
+
+[node name="RandomizeSurfuceColor" type="Button" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/HBoxContainer" unique_id=854310001]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
+icon = ExtResource("6_opjcv")
+icon_alignment = 1
+vertical_icon_alignment = 0
+expand_icon = true
 
 [node name="HSeparator" type="HSeparator" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=664698983]
 layout_mode = 2
@@ -439,5 +479,6 @@ size_flags_vertical = 4
 text = "Explore"
 
 [connection signal="pressed" from="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/SELECT_PLANET/MarginContainer/VBoxContainer/AddPlanetButton" to="UI" method="_on_add_planet_button_pressed"]
+[connection signal="pressed" from="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/HBoxContainer/RandomizeSurfuceColor" to="UI" method="_on_randomize_surfuce_color_pressed"]
 [connection signal="pressed" from="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/Seed/RandomizeSeedButton" to="UI" method="_on_randomize_seed_button_pressed"]
 [connection signal="pressed" from="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/ExploreButton" to="UI" method="_on_explore_button_pressed"]
