@@ -13,7 +13,7 @@ noise_octaves = 2
 metadata/_custom_type_script = "uid://b5fljoi52b3r2"
 
 [sub_resource type="Gradient" id="Gradient_8b61e"]
-offsets = PackedFloat32Array(0.481982, 0.9015151, 0.94949496)
+offsets = PackedFloat32Array(0.46494466, 0.9015151, 0.94949496)
 colors = PackedColorArray(0.22, 0.22, 0.22, 1, 0.63, 0.42955503, 0.10710001, 1, 0.32957166, 0.91, 0.10010002, 1)
 
 [sub_resource type="Resource" id="Resource_o20k0"]

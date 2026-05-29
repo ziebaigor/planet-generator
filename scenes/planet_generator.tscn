@@ -57,11 +57,14 @@ directional_light = NodePath("../../DirectionalLight3D")
 density_generator = SubResource("Resource_jcijy")
 color_generator = SubResource("Resource_ipcg4")
 
-[node name="UI" type="CanvasLayer" parent="." unique_id=252421876 node_paths=PackedStringArray("world_root", "generation_ui_root", "generation_cam", "selected_planet")]
+[node name="UI" type="CanvasLayer" parent="." unique_id=252421876 node_paths=PackedStringArray("world_root", "generation_ui_root", "generation_cam", "cam_root", "planets_parent", "ui_planet_entries_parent", "selected_planet")]
 script = ExtResource("5_j0l1l")
 world_root = NodePath("../WORLD")
 generation_ui_root = NodePath("GenerationUI")
 generation_cam = NodePath("GenerationUI/GenerationCamViewport/SubViewport/CameraMovement/PitchPivot/GenerationCam")
+cam_root = NodePath("GenerationUI/GenerationCamViewport/SubViewport/CameraMovement")
+planets_parent = NodePath("../WORLD/PLANETS")
+ui_planet_entries_parent = NodePath("GenerationUI/Panel/MarginContainer/VBoxContainer/SELECT_PLANET/MarginContainer/VBoxContainer/ScrollContainer/PlanetSelectEntriesParent")
 selected_planet = NodePath("../WORLD/PLANETS/DefaultPlanet")
 
 [node name="GenerationUI" type="HBoxContainer" parent="UI" unique_id=1560356526]
@@ -119,20 +122,33 @@ layout_mode = 2
 size_flags_vertical = 3
 size_flags_stretch_ratio = 0.4
 
-[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/SELECT_PLANET" unique_id=51217889]
+[node name="MarginContainer" type="MarginContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/SELECT_PLANET" unique_id=42139198]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -92.5
-offset_top = -11.5
-offset_right = 92.5
-offset_bottom = 11.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Selected planet: Default"
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/SELECT_PLANET/MarginContainer" unique_id=918069316]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/SELECT_PLANET/MarginContainer/VBoxContainer" unique_id=1795330144]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PlanetSelectEntriesParent" type="VBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/SELECT_PLANET/MarginContainer/VBoxContainer/ScrollContainer" unique_id=2111731137]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="AddPlanetButton" type="Button" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/SELECT_PLANET/MarginContainer/VBoxContainer" unique_id=127413882]
+layout_mode = 2
+text = "Add Planet"
 
 [node name="PLANET_SETTINGS" type="Panel" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer" unique_id=80166777]
 layout_mode = 2
@@ -153,7 +169,7 @@ theme_override_constants/margin_bottom = 10
 [node name="PlanetSettingsScroll" type="ScrollContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer" unique_id=1765075040]
 layout_mode = 2
 size_flags_vertical = 3
-scroll_vertical = 273
+scroll_vertical = 100
 horizontal_scroll_mode = 0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll" unique_id=1389441039]
@@ -408,4 +424,5 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 text = "Explore"
 
+[connection signal="pressed" from="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/SELECT_PLANET/MarginContainer/VBoxContainer/AddPlanetButton" to="UI" method="_on_add_planet_button_pressed"]
 [connection signal="pressed" from="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/ExploreButton" to="UI" method="_on_explore_button_pressed"]

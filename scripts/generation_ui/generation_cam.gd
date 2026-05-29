@@ -1,3 +1,4 @@
+class_name GenerationCam
 extends Node3D
 
 @export var target: Node3D
