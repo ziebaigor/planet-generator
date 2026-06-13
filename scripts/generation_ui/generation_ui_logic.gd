@@ -23,6 +23,8 @@ var settings_fields : Array[PlanetSettingsField] = []
 
 var needs_to_be_regenerated_queue : Array[Planet] = []
 
+var player : Node3D
+
 
 func _ready() -> void:
 	randomize()
@@ -45,6 +47,14 @@ func _ready() -> void:
 	# Configure default planet
 	selected_planet.planet_generation_finished.connect(_on_planet_fully_generated)
 	_add_planet_entry_for_planet(selected_planet)
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.keycode == KEY_ESCAPE and event.pressed:
+		if player != null:
+			player.queue_free()
+			player = null
+		
+		generation_ui_root.show()
 
 
 #
@@ -70,7 +80,7 @@ func _refill_all_input_fields() -> void:
 func _on_explore_button_pressed() -> void:
 	generation_ui_root.hide()
 	
-	var player : PlayerController = PLAYER_SCENE.instantiate()
+	player = PLAYER_SCENE.instantiate()
 	player.global_position = generation_cam.global_position
 	player.rotation = generation_cam.rotation
 	player.get_node("Camera3D").current = true
