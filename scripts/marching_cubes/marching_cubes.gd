@@ -13,13 +13,11 @@ extends Node3D
 
 var mesh_generator := MarchingCubesMeshGeneratorV2.new()
 
-# If processed_chunks == total_chunks the mesh is fully generated
 var total_chunks := 0
 var processed_chunks := 0
 
 @onready var chunks_parent : Node3D = $Chunks
 
-# Dict of chunks { place in space (Vector3i) -> chunk node }
 var chunks : Dictionary[Vector3i, Node3D] = {}
 
 signal chunk_generation_started(chunk_coords : Vector3)
@@ -41,9 +39,10 @@ func _ready() -> void:
 
 
 func regenerate() -> void:
-	# Delete old chunks
 	for ch in chunks_parent.get_children():
 		ch.queue_free()
+	
+	chunks.clear()
 	
 	_generate_preview()
 	_generate_mesh()
@@ -59,16 +58,18 @@ func _generate_mesh() -> void:
 	var chunk_coords := make_chunk_coords()
 	total_chunks = chunk_coords.size()
 	
-	var tasks : Array = []
+	# Generate all chunks as async tasks
+	# Tasks run in background and apply results via call_deferred
+	# Completion is tracked by processed_chunks counter in _finalize_chunk
 	for coord in chunk_coords:
 		var start_pos := coord
 		WorkerThreadPool.add_task(generate_chunk_task.bind(start_pos))
-	
-	for task in tasks:
-		WorkerThreadPool.wait_for_task_completion(task)
 
 
 func _generate_preview() -> void:
+	# Generate a low-resolution preview mesh for each chunk
+	# This gives instant visual feedback while the full mesh generates
+	# Resolution of 20 means very coarse mesh (1 cube per 20 units)
 	for chunk_pos in make_chunk_coords():
 		var arrays := mesh_generator.generate_mesh_arrays(chunk_pos, chunk_size, 20)
 		_apply_chunk_mesh(chunk_pos, arrays)
@@ -95,9 +96,16 @@ func generate_chunk_task(start_pos : Vector3) -> void:
 	chunk_generation_started.emit.call_deferred(start_pos)
 	var arrays := mesh_generator.generate_mesh_arrays(start_pos, chunk_size)
 	
-	if arrays[0].size() != 0:
+	# Check if mesh has valid data
+	# Both vertices AND indices must be non-empty for a valid mesh
+	# Chunks entirely inside or outside the surface will have empty arrays
+	var has_vertices := not (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).is_empty()
+	var has_indices := not (arrays[Mesh.ARRAY_INDEX] as PackedInt32Array).is_empty()
+	
+	if has_vertices and has_indices:
 		call_deferred("_apply_chunk_mesh_and_finailize", start_pos, arrays)
 	else:
+		# No mesh data (chunk is fully solid or fully empty)
 		call_deferred("_finalize_chunk", start_pos, null)
 
 
@@ -109,8 +117,23 @@ func _apply_chunk_mesh(chunk_coord : Vector3i, arrays : Array) -> MeshInstance3D
 	new_chunk.position = chunk_coord
 	chunks_parent.add_child(new_chunk)
 	
+	# Many chunks will have no surface crossings and will produce empty arrays
+	var vertices := arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array
+	var indices := arrays[Mesh.ARRAY_INDEX] as PackedInt32Array
+	
+	if vertices.is_empty() or indices.is_empty():
+		# Store the empty chunk node and return
+		chunks[chunk_coord] = new_chunk
+		return new_chunk
+	
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	
+	# Verify that surface was created successfully
+	if mesh.get_surface_count() == 0:
+		chunks[chunk_coord] = new_chunk
+		return new_chunk
+	
 	new_chunk.mesh = mesh
 	
 	# Collision 
@@ -119,11 +142,15 @@ func _apply_chunk_mesh(chunk_coord : Vector3i, arrays : Array) -> MeshInstance3D
 	
 	var collision := CollisionShape3D.new()
 	body.add_child(collision)
-	collision.shape = mesh.create_trimesh_shape()
 	
-	# Material
+	# Create trimesh collision shape from generated mesh
+	var trimesh_shape := mesh.create_trimesh_shape()
+	if trimesh_shape != null:
+		collision.shape = trimesh_shape
+	else:
+		collision.disabled = true
+	
 	new_chunk.mesh.surface_set_material(0, mesh_material)
-	
 	
 	chunks[chunk_coord] = new_chunk
 	return new_chunk
@@ -131,6 +158,7 @@ func _apply_chunk_mesh(chunk_coord : Vector3i, arrays : Array) -> MeshInstance3D
 
 func _finalize_chunk(chunk_coords : Vector3i, chunk_node : MeshInstance3D) -> void:
 	processed_chunks += 1
+	
 	chunk_generation_finished.emit(chunk_coords, chunk_node)
 	
 	if processed_chunks == total_chunks:

@@ -17,7 +17,8 @@ const PLANET_SELECT_ENTRY := preload("res://scripts/generation_ui/planet_select_
 @export var selected_planet : Planet:
 	set(val):
 		selected_planet = val
-		_refill_all_input_fields()
+		if is_inside_tree() and is_node_ready():
+			_refill_all_input_fields()
 
 var settings_fields : Array[PlanetSettingsField] = []
 
@@ -42,6 +43,7 @@ func _ready() -> void:
 		input_field.request_regeneration.connect(_regenerate_planet)
 		input_field.value_changed.connect(_input_field_value_changed)
 	
+	# Refill all fields now that we are ready and all connections are made
 	_refill_all_input_fields()
 	
 	# Configure default planet
@@ -71,22 +73,41 @@ func _find_field_children_recursively(parent : Node, found : Array[PlanetSetting
 		_find_field_children_recursively(child, found)
 
 func _refill_all_input_fields() -> void:
+	if !is_instance_valid(selected_planet):
+		return
+	
 	for input_field in settings_fields:
 		_fill_input_field(input_field, input_field.connected_property)
 	
 	_fill_position_input()
-	%SurfuceGradient.texture.gradient = selected_planet.color_generator.color_gradient
+	
+	# Update gradient preview if color_generator exists
+	if selected_planet.color_generator != null:
+		%SurfuceGradient.texture.gradient = selected_planet.color_generator.color_gradient
 
 func _on_explore_button_pressed() -> void:
+	if !is_instance_valid(generation_cam) or !generation_cam.is_inside_tree():
+		return
+	
 	generation_ui_root.hide()
 	
 	player = PLAYER_SCENE.instantiate()
+	
+	# Add player to the tree first!
+	# Global properties like global_position cannot be set before the node is in the tree
+	world_root.add_child(player)
+	
 	player.global_position = generation_cam.global_position
 	player.rotation = generation_cam.rotation
-	player.get_node("Camera3D").current = true
-	world_root.add_child(player)
+	
+	var cam := player.get_node_or_null("Camera3D")
+	if cam is Camera3D:
+		cam.current = true
 
 func _fill_input_field(field, property : String) -> void:
+	if !is_instance_valid(selected_planet):
+		return
+	
 	var value = 0
 	var found := false
 	if property in selected_planet:
@@ -103,6 +124,9 @@ func _fill_input_field(field, property : String) -> void:
 	field.fill(value)
 
 func _input_field_value_changed(property : String, new_value) -> void:
+	if !is_instance_valid(selected_planet):
+		return
+	
 	if property in selected_planet:
 		selected_planet.set(property, new_value)
 	elif property in selected_planet.density_generator:
@@ -111,6 +135,9 @@ func _input_field_value_changed(property : String, new_value) -> void:
 		print("GenerationUILogic: Property \'%s\' not found!" % property)
 
 func _regenerate_planet() -> void:
+	if !is_instance_valid(selected_planet):
+		return
+	
 	if selected_planet.is_fully_generated():
 		selected_planet.regenerate()
 	elif !needs_to_be_regenerated_queue.has(selected_planet):
@@ -136,13 +163,19 @@ func _on_randomize_seed_button_pressed() -> void:
 # POSITION INPUT FIELD
 #
 func _on_position_input_position_changed(new_pos : Vector3) -> void:
+	if !is_instance_valid(selected_planet):
+		return
+	
 	selected_planet.global_position = new_pos
 
 func _fill_position_input() -> void:
 	var pos_input : PositionInput = %PositionInput
-	pos_input.set_pos(selected_planet.global_position)
-
-
+	
+	if is_instance_valid(selected_planet) and selected_planet.is_inside_tree():
+		pos_input.set_pos(selected_planet.global_position)
+	else:
+		# Fallback: set to zero if planet is not ready
+		pos_input.set_pos(Vector3.ZERO)
 
 #
 # PLANETS MANAGEMENT
@@ -265,6 +298,9 @@ func make_random_gradient(color_count: int = 4) -> Gradient:
 
 
 func _on_randomize_surfuce_color_pressed() -> void:
+	if !is_instance_valid(selected_planet):
+		return
+	
 	selected_planet.color_generator.color_gradient = make_random_gradient(randi_range(2,6))
 	_refill_all_input_fields()
 	_regenerate_planet()
