@@ -17,6 +17,7 @@ const PLANET_SELECT_ENTRY := preload("res://scripts/generation_ui/planet_select_
 @export var selected_planet : Planet:
 	set(val):
 		selected_planet = val
+		# Only update UI if the node is fully initialized
 		if is_inside_tree() and is_node_ready():
 			_refill_all_input_fields()
 
@@ -73,6 +74,7 @@ func _find_field_children_recursively(parent : Node, found : Array[PlanetSetting
 		_find_field_children_recursively(child, found)
 
 func _refill_all_input_fields() -> void:
+	# Prevent interaction with invalid planets
 	if !is_instance_valid(selected_planet):
 		return
 	
@@ -86,6 +88,7 @@ func _refill_all_input_fields() -> void:
 		%SurfuceGradient.texture.gradient = selected_planet.color_generator.color_gradient
 
 func _on_explore_button_pressed() -> void:
+	# Ensure camera is valid before use
 	if !is_instance_valid(generation_cam) or !generation_cam.is_inside_tree():
 		return
 	
@@ -93,8 +96,7 @@ func _on_explore_button_pressed() -> void:
 	
 	player = PLAYER_SCENE.instantiate()
 	
-	# Add player to the tree first!
-	# Global properties like global_position cannot be set before the node is in the tree
+	# Nodes must be inside the SceneTree to set global transforms
 	world_root.add_child(player)
 	
 	player.global_position = generation_cam.global_position
@@ -105,16 +107,24 @@ func _on_explore_button_pressed() -> void:
 		cam.current = true
 
 func _fill_input_field(field, property : String) -> void:
+	# Prevent interaction with invalid planets
 	if !is_instance_valid(selected_planet):
 		return
 	
 	var value = 0
 	var found := false
+	
+	# Check planet properties
 	if property in selected_planet:
 		value = selected_planet.get(property)
 		found = true
+	# Check density_generator properties
 	elif property in selected_planet.density_generator:
 		value = selected_planet.density_generator.get(property)
+		found = true
+	# Check flora_generator properties
+	elif selected_planet.flora_generator != null and property in selected_planet.flora_generator:
+		value = selected_planet.flora_generator.get(property)
 		found = true
 	
 	if !found:
@@ -124,6 +134,7 @@ func _fill_input_field(field, property : String) -> void:
 	field.fill(value)
 
 func _input_field_value_changed(property : String, new_value) -> void:
+	# Prevent interaction with invalid planets
 	if !is_instance_valid(selected_planet):
 		return
 	
@@ -131,10 +142,13 @@ func _input_field_value_changed(property : String, new_value) -> void:
 		selected_planet.set(property, new_value)
 	elif property in selected_planet.density_generator:
 		selected_planet.density_generator.set(property, new_value)
+	elif selected_planet.flora_generator != null and property in selected_planet.flora_generator:
+		selected_planet.flora_generator.set(property, new_value)
 	else:
 		print("GenerationUILogic: Property \'%s\' not found!" % property)
 
 func _regenerate_planet() -> void:
+	# Prevent interaction with invalid planets
 	if !is_instance_valid(selected_planet):
 		return
 	
@@ -163,6 +177,7 @@ func _on_randomize_seed_button_pressed() -> void:
 # POSITION INPUT FIELD
 #
 func _on_position_input_position_changed(new_pos : Vector3) -> void:
+	# Prevent interaction with invalid planets
 	if !is_instance_valid(selected_planet):
 		return
 	
@@ -171,10 +186,11 @@ func _on_position_input_position_changed(new_pos : Vector3) -> void:
 func _fill_position_input() -> void:
 	var pos_input : PositionInput = %PositionInput
 	
+	# Ensure the planet is valid and in the tree before getting its global position
 	if is_instance_valid(selected_planet) and selected_planet.is_inside_tree():
 		pos_input.set_pos(selected_planet.global_position)
 	else:
-		# Fallback: set to zero if planet is not ready
+		# Default to zero if the planet is not ready
 		pos_input.set_pos(Vector3.ZERO)
 
 #
@@ -203,6 +219,14 @@ func _on_add_planet_button_pressed() -> void:
 	var new_planet := PLANET_SCENE.instantiate()
 	new_planet.position = _get_default_position_for_planet(num_planets)
 	planets_parent.add_child(new_planet)
+	
+	# Ensure each planet has unique resource instances
+	if new_planet.density_generator:
+		new_planet.density_generator = new_planet.density_generator.duplicate()
+	if new_planet.color_generator:
+		new_planet.color_generator = new_planet.color_generator.duplicate()
+	if new_planet.flora_generator:
+		new_planet.flora_generator = new_planet.flora_generator.duplicate()
 	
 	new_planet.density_generator.random_seed = randi()
 	new_planet.water_color = Color(randf(), randf(), randf())
@@ -298,6 +322,7 @@ func make_random_gradient(color_count: int = 4) -> Gradient:
 
 
 func _on_randomize_surfuce_color_pressed() -> void:
+	# Prevent interaction with invalid planets
 	if !is_instance_valid(selected_planet):
 		return
 	

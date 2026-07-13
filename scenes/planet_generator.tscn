@@ -1,15 +1,16 @@
-[gd_scene format=3 uid="uid://cugq6svifa7tc"]
+[gd_scene load_steps=11 format=3 uid="uid://cugq6svifa7tc"]
 
 [ext_resource type="PackedScene" uid="uid://cma760537lno2" path="res://scripts/planet/planet.tscn" id="1_57qqk"]
 [ext_resource type="Script" uid="uid://dsi223361ju3h" path="res://scripts/marching_cubes/mesh_generator/color_generators/radial_color_generator.gd" id="3_j0l1l"]
 [ext_resource type="Script" uid="uid://b5fljoi52b3r2" path="res://scripts/marching_cubes/mesh_generator/density_generators/planet_density_generator.gd" id="3_opjcv"]
 [ext_resource type="Script" uid="uid://bsgnrbkpc4oxt" path="res://scripts/generation_ui/generation_cam.gd" id="4_j0l1l"]
 [ext_resource type="Script" uid="uid://bds81nfyn3yw5" path="res://scripts/generation_ui/generation_ui_logic.gd" id="5_j0l1l"]
-[ext_resource type="PackedScene" uid="uid://psdqsrxhufp" path="res://scripts/generation_ui/settings_fields/planet_settings_input_field.tscn" id="6_aij2p"]
 [ext_resource type="Script" uid="uid://bnepe47wh0hem" path="res://scripts/generation_ui/position_input.gd" id="6_jcijy"]
 [ext_resource type="Texture2D" uid="uid://bhvmjd0qypp0h" path="res://scripts/generation_ui/578172_refresh-icon-png-1244205847.png" id="6_opjcv"]
+[ext_resource type="PackedScene" uid="uid://psdqsrxhufp" path="res://scripts/generation_ui/settings_fields/planet_settings_input_field.tscn" id="6_aij2p"]
 [ext_resource type="PackedScene" uid="uid://ds4je1vri7xoc" path="res://scripts/generation_ui/settings_fields/planet_settings_checkbutton.tscn" id="9_ipcg4"]
 [ext_resource type="PackedScene" uid="uid://ueefup2fgaxk" path="res://scripts/generation_ui/settings_fields/planet_settings_color_picker.tscn" id="10_fcntt"]
+[ext_resource type="Script" path="res://scripts/generation_ui/settings_fields/planet_settings_dropdown.gd" id="100_drop"]
 
 [sub_resource type="Resource" id="Resource_jcijy"]
 script = ExtResource("3_opjcv")
@@ -478,6 +479,148 @@ text = "Water Color"
 layout_mode = 2
 size_flags_horizontal = 10
 connected_property = "water_color"
+
+[node name="HSeparator5" type="HSeparator" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=900000001]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Label6" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=900000002]
+layout_mode = 2
+text = "Flora Settings"
+
+[node name="FloraDistMode" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=900000027]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/FloraDistMode" unique_id=900000028]
+layout_mode = 2
+text = "Distribution"
+
+[node name="OptionButton" type="OptionButton" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/FloraDistMode" unique_id=900000029]
+layout_mode = 2
+size_flags_horizontal = 10
+script = ExtResource("100_drop")
+connected_property = "distribution_mode"
+options = {"RANDOM":0,"CLUSTERED":1}
+
+[node name="FloraDensity" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=900000003]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/FloraDensity" unique_id=900000004]
+layout_mode = 2
+text = "Density"
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/FloraDensity" unique_id=900000005 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+constrain_min = null
+constrain_max = null
+connected_property = "density"
+
+[node name="FloraMaxAttempts" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=900000006]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/FloraMaxAttempts" unique_id=900000007]
+layout_mode = 2
+text = "Max Attempts"
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/FloraMaxAttempts" unique_id=900000008 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+constrain_min = null
+constrain_max = null
+connected_property = "max_attempts"
+
+[node name="FloraScaleMin" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=900000009]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/FloraScaleMin" unique_id=900000010]
+layout_mode = 2
+text = "Scale Min"
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/FloraScaleMin" unique_id=900000011 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+constrain_min = null
+constrain_max = null
+connected_property = "scale_min"
+
+[node name="FloraScaleMax" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=900000012]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/FloraScaleMax" unique_id=900000013]
+layout_mode = 2
+text = "Scale Max"
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/FloraScaleMax" unique_id=900000014 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+constrain_min = null
+constrain_max = null
+connected_property = "scale_max"
+
+[node name="FloraClusterRadius" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=900000015]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/FloraClusterRadius" unique_id=900000016]
+layout_mode = 2
+text = "Cluster Radius"
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/FloraClusterRadius" unique_id=900000017 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+constrain_min = null
+constrain_max = null
+connected_property = "cluster_radius"
+
+[node name="FloraClusterCount" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=900000018]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/FloraClusterCount" unique_id=900000019]
+layout_mode = 2
+text = "Cluster Count"
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/FloraClusterCount" unique_id=900000020 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+constrain_min = null
+constrain_max = null
+connected_property = "cluster_count"
+
+[node name="FloraAlign" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=900000021]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/FloraAlign" unique_id=900000022]
+layout_mode = 2
+text = "Align to Normal"
+
+[node name="CheckButton" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/FloraAlign" unique_id=900000023 instance=ExtResource("9_ipcg4")]
+layout_mode = 2
+size_flags_horizontal = 10
+connected_property = "align_to_normal"
+
+[node name="FloraRandomRot" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=900000024]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/FloraRandomRot" unique_id=900000025]
+layout_mode = 2
+text = "Random Rotation"
+
+[node name="CheckButton" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/FloraRandomRot" unique_id=900000026 instance=ExtResource("9_ipcg4")]
+layout_mode = 2
+size_flags_horizontal = 10
+connected_property = "random_rotation_y"
 
 [node name="ExploreButton" type="Button" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer" unique_id=1029820388]
 layout_mode = 2

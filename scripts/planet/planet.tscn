@@ -3,9 +3,15 @@
 [ext_resource type="PackedScene" uid="uid://dpnigd2lqwehr" path="res://scripts/marching_cubes/marching_cubes.tscn" id="1_klx1d"]
 [ext_resource type="PackedScene" uid="uid://c0plpsly8x0u" path="res://scripts/gravity_source/gravity_source.tscn" id="2_25h14"]
 [ext_resource type="Script" uid="uid://wddvgb34rloo" path="res://scripts/planet/planet.gd" id="2_un6tk"]
+[ext_resource type="Script" uid="uid://d4jfca1r14dl7" path="res://scripts/marching_cubes/mesh_generator/flora_entry.gd" id="3_d2c3h"]
 [ext_resource type="Shader" uid="uid://crwnimc6kjbm1" path="res://scripts/water/water_shader.gdshader" id="5_jqiaj"]
 [ext_resource type="Texture2D" uid="uid://k0c1s7qnw53e" path="res://scripts/water/Water 0341normal.jpg" id="6_pnxfp"]
 [ext_resource type="Script" uid="uid://bwjm0nuy8360j" path="res://scripts/water/water_area.gd" id="7_ere2x"]
+[ext_resource type="Script" uid="uid://cviiiga6tbfmg" path="res://scripts/marching_cubes/mesh_generator/flora_generator.gd" id="12_samca"]
+
+[sub_resource type="Resource" id="Resource_qbso6"]
+script = ExtResource("12_samca")
+metadata/_custom_type_script = "uid://cviiiga6tbfmg"
 
 [sub_resource type="SphereMesh" id="SphereMesh_un6tk"]
 
@@ -49,8 +55,9 @@ gravity_radius_multiplier = 1.5
 gravity_strength = 20.0
 constant_gravity = false
 generate_water = true
-water_radius_mult = 2.0
+water_radius_mult = 1.0
 water_color = Color(0.059, 0.592, 1, 1)
+flora_generator = SubResource("Resource_qbso6")
 
 [node name="GravitySource" parent="." index="2" unique_id=559080801 instance=ExtResource("2_25h14")]
 

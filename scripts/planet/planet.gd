@@ -8,20 +8,21 @@ extends MarchingCubes
 		
 		radius = val
 		
-		# Chunk grid size
+		# Chunk grid size scales with the planet's radius
 		var num_chunks := int(radius / 10) + 2
 		chunks_amount = Vector3i(num_chunks, num_chunks, num_chunks)
 		var st := -num_chunks * 10
 		start_at = Vector3i(st, st, st)
 		
-		# Density Generator
-		if "radius" in density_generator:
+		# Sync radius with the density generator, regardless of which version is used
+		if "base_radius" in density_generator:
+			density_generator.base_radius = radius
+		elif "planet_size" in density_generator:
+			density_generator.planet_size = radius * 2.0
+		elif "radius" in density_generator:
 			density_generator.radius = radius
 		
-		# Gravity
 		gravity_source.planet_radius = radius
-		
-		# Water
 		_update_water_radius()
 
 @export_group("Gravity Settings")
@@ -29,7 +30,6 @@ extends MarchingCubes
 	set(val):
 		if !is_node_ready():
 			await ready
-		
 		gravity_radius_multiplier = val
 		gravity_source.gravity_radius_multiplier = gravity_radius_multiplier
 
@@ -37,7 +37,6 @@ extends MarchingCubes
 	set(val):
 		if !is_node_ready():
 			await ready
-		
 		gravity_strength = val
 		gravity_source.gravity_strength = gravity_strength
 
@@ -45,7 +44,6 @@ extends MarchingCubes
 	set(val):
 		if !is_node_ready():
 			await ready
-		
 		constant_gravity = val
 		gravity_source.constant_gravity = constant_gravity
 
@@ -54,15 +52,15 @@ extends MarchingCubes
 	set(val):
 		if !is_node_ready():
 			await ready
-		
 		generate_water = val
 		_update_water_radius()
 
-@export var water_radius_mult := 2.0:
+# Multiplier for the water sphere radius. 
+# 1.0 aligns the water level exactly with the planet's base radius.
+@export var water_radius_mult := 1.0:
 	set(val):
 		if !is_node_ready():
 			await ready
-		
 		water_radius_mult = val
 		_update_water_radius()
 
@@ -70,7 +68,6 @@ extends MarchingCubes
 	set(val):
 		if !is_node_ready():
 			await ready
-		
 		water_color = val
 		_update_water_color()
 
@@ -78,38 +75,75 @@ extends MarchingCubes
 	set(val):
 		if !is_node_ready():
 			await ready
-		
 		directional_light = val
 		_update_water_color()
+
+@export_group("Flora Settings")
+@export var flora_generator : FloraGenerator
 
 @onready var gravity_source : GravitySource = $GravitySource
 @onready var water : MeshInstance3D = $Water
 
-
+var flora_parent : Node3D
 
 
 func _ready() -> void:
-	if "radius" in density_generator:
+	# Sync radius with the density generator on ready
+	if "base_radius" in density_generator:
+		density_generator.base_radius = radius
+	elif "planet_size" in density_generator:
+		density_generator.planet_size = radius * 2.0
+	elif "radius" in density_generator:
 		density_generator.radius = radius
 	
-	# Gravity source
 	gravity_source.planet_radius = radius
-	
 	gravity_source.gravity_radius_multiplier = gravity_radius_multiplier
 	gravity_source.gravity_strength = gravity_strength
 	gravity_source.constant_gravity = constant_gravity
 	
-	# Water
 	_update_water_radius()
 	_update_water_color()
 	
+	# Setup parent node for flora instances
+	if flora_generator:
+		flora_parent = Node3D.new()
+		flora_parent.name = "Flora"
+		add_child(flora_parent)
+	
 	super._ready()
+
+
+func regenerate() -> void:
+	# Clear old flora immediately when regeneration starts
+	if is_instance_valid(flora_parent):
+		for child in flora_parent.get_children():
+			child.queue_free()
+	
+	super.regenerate()
 
 
 func _finalize_chunk(chunk_coords : Vector3i, chunk_node : MeshInstance3D) -> void:
 	super._finalize_chunk(chunk_coords, chunk_node)
 	if processed_chunks == total_chunks:
 		gravity_source.generation_done()
+		
+		# Generate flora after the whole planet and collisions are fully generated
+		if flora_generator and flora_parent:
+			var seed_val = randi()
+			if "random_seed" in density_generator:
+				seed_val = density_generator.random_seed
+			flora_generator.initialize(seed_val)
+			
+			var water_r = radius * water_radius_mult
+			if !generate_water:
+				water_r = 0.0
+			
+			# Defer generation to ensure physics shapes are registered in the physics server
+			call_deferred("_generate_flora", water_r)
+
+func _generate_flora(water_r: float) -> void:
+	if is_instance_valid(flora_generator) and is_instance_valid(flora_parent):
+		flora_generator.generate(self, radius, water_r, flora_parent)
 
 
 func _update_water_radius() -> void:
@@ -120,7 +154,14 @@ func _update_water_radius() -> void:
 	if !generate_water:
 		water_r = 1
 	
-	water.scale = Vector3(water_r,water_r,water_r)
+	# A default SphereMesh has a radius of 0.5, so scaling by 2.0 matches the visual radius to the target value.
+	var scale_factor = water_r * 2.0
+	var scale_vec = Vector3(scale_factor, scale_factor, scale_factor)
+	water.scale = scale_vec
+	
+	var water_backside = get_node_or_null("WaterBackside")
+	if water_backside:
+		water_backside.scale = scale_vec
 
 func _update_water_color() -> void:
 	var deep_color := _make_deep_water_color(water_color)
@@ -142,13 +183,11 @@ func _make_deep_water_color(shallow: Color, value_mul := 0.6, hue_shift := -0.04
 	var s = shallow.s
 	var v = shallow.v
 	
-	# Shift hue
+	# Shift hue for visual variety
 	h = wrapf(h + hue_shift, 0.0, 1.0)
 	
-	# Increase saturation
+	# Increase saturation and darken the color for deep water effect
 	s = clamp(s * saturation_mul, 0.0, 1.0)
-	
-	# Darken
 	v = clamp(v * value_mul, 0.0, 1.0)
 	
 	return Color.from_hsv(h, s, v, shallow.a)
