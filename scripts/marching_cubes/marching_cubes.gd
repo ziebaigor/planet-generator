@@ -7,8 +7,32 @@ extends Node3D
 @export var start_at := Vector3(-50,-50,-50)
 @export var chunk_size := 20
 @export var chunks_amount := Vector3i(5,5,5)
-@export var density_generator : DensityGenerator = PlanetDensityGenerator.new()
-@export var color_generator : ColorGenerator = RadialColorGenerator.new()
+
+# Setter ensures that when a new density_generator is assigned (like when duplicating
+# for a new planet), the mesh_generator's reference is also updated. This keeps the
+# internal mesh generator in sync with the exported resource.
+@export var density_generator : DensityGenerator = PlanetDensityGenerator.new():
+	set(val):
+		density_generator = val
+		# Only update mesh_generator if the node is fully ready and mesh_generator exists
+		# This prevents errors during early initialization before _ready() is called
+		if is_node_ready() and mesh_generator != null:
+			mesh_generator.density_generator = density_generator
+			if density_generator:
+				density_generator.initialize()
+
+# Setter ensures that when a new color_generator is assigned (like when duplicating
+# for a new planet), the mesh_generator's reference is also updated. This keeps the
+# internal mesh generator in sync with the exported resource so color gradients
+# are properly applied to the generated mesh.
+@export var color_generator : ColorGenerator = RadialColorGenerator.new():
+	set(val):
+		color_generator = val
+		# Only update mesh_generator if the node is fully ready and mesh_generator exists
+		# This prevents errors during early initialization before _ready() is called
+		if is_node_ready() and mesh_generator != null:
+			mesh_generator.color_generator = color_generator
+
 @export var mesh_material := StandardMaterial3D.new()
 
 var mesh_generator := MarchingCubesMeshGeneratorV2.new()
@@ -39,6 +63,14 @@ func _ready() -> void:
 
 
 func regenerate() -> void:
+	# Re-initialize the density generator before each regeneration
+	# This ensures that any changes to properties like random_seed, noise_frequency,
+	# noise_octaves, etc. are properly applied to the internal noise object.
+	# Without this, changing the seed via UI would not affect the generated terrain
+	# because the noise object was only created once in _ready().
+	if density_generator:
+		density_generator.initialize()
+	
 	for ch in chunks_parent.get_children():
 		ch.queue_free()
 	

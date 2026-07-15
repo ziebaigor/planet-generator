@@ -217,10 +217,12 @@ func _on_add_planet_button_pressed() -> void:
 	
 	# Add planet
 	var new_planet := PLANET_SCENE.instantiate()
-	new_planet.position = _get_default_position_for_planet(num_planets)
-	planets_parent.add_child(new_planet)
 	
-	# Ensure each planet has unique resource instances
+	# Ensure each planet has unique resource instances BEFORE adding to tree.
+	# This is critical because when the planet is added to the tree, _ready() is called
+	# which assigns these generators to the internal mesh_generator and calls regenerate().
+	# If we duplicate after adding to tree, the mesh_generator would still reference
+	# the original shared generator, causing all planets to use the same colors/terrain.
 	if new_planet.density_generator:
 		new_planet.density_generator = new_planet.density_generator.duplicate()
 	if new_planet.color_generator:
@@ -228,9 +230,19 @@ func _on_add_planet_button_pressed() -> void:
 	if new_planet.flora_generator:
 		new_planet.flora_generator = new_planet.flora_generator.duplicate()
 	
+	# Set unique properties BEFORE adding to tree.
+	# These values will be used when _ready() calls initialize() on the density_generator
+	# and regenerate() to build the mesh. Setting them before ensures the first generation
+	# uses the correct random seed and color gradient.
 	new_planet.density_generator.random_seed = randi()
-	new_planet.water_color = Color(randf(), randf(), randf())
 	new_planet.color_generator.color_gradient = make_random_gradient(randi_range(2,6))
+	
+	new_planet.position = _get_default_position_for_planet(num_planets)
+	planets_parent.add_child(new_planet)
+	
+	# Set water_color AFTER adding to tree because the setter uses await ready
+	# to ensure child nodes (like water mesh) are initialized before updating.
+	new_planet.water_color = Color(randf(), randf(), randf())
 	
 	_add_planet_entry_for_planet(new_planet)
 	_set_selected_planet(new_planet)
