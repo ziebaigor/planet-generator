@@ -3,80 +3,55 @@ extends MarchingCubes
 
 @export var radius := 30.0:
 	set(val):
-		if !is_node_ready():
-			await ready
-		
 		radius = val
-		
-		# Chunk grid size scales with the planet's radius
-		var num_chunks := int(radius / 10) + 2
-		chunks_amount = Vector3i(num_chunks, num_chunks, num_chunks)
-		var st := -num_chunks * 10
-		start_at = Vector3i(st, st, st)
-		
-		# Sync radius with the density generator, regardless of which version is used
-		if "base_radius" in density_generator:
-			density_generator.base_radius = radius
-		elif "planet_size" in density_generator:
-			density_generator.planet_size = radius * 2.0
-		elif "radius" in density_generator:
-			density_generator.radius = radius
-		
-		gravity_source.planet_radius = radius
-		_update_water_radius()
+		if is_node_ready():
+			_update_radius()
 
 @export_group("Gravity Settings")
 @export var gravity_radius_multiplier := 1.5:
 	set(val):
-		if !is_node_ready():
-			await ready
 		gravity_radius_multiplier = val
-		gravity_source.gravity_radius_multiplier = gravity_radius_multiplier
+		if is_node_ready():
+			gravity_source.gravity_radius_multiplier = gravity_radius_multiplier
 
 @export var gravity_strength := 20.0:
 	set(val):
-		if !is_node_ready():
-			await ready
 		gravity_strength = val
-		gravity_source.gravity_strength = gravity_strength
+		if is_node_ready():
+			gravity_source.gravity_strength = gravity_strength
 
 @export var constant_gravity := false:
 	set(val):
-		if !is_node_ready():
-			await ready
 		constant_gravity = val
-		gravity_source.constant_gravity = constant_gravity
+		if is_node_ready():
+			gravity_source.constant_gravity = constant_gravity
 
 @export_group("Water Settings")
 @export var generate_water := true:
 	set(val):
-		if !is_node_ready():
-			await ready
 		generate_water = val
-		_update_water_radius()
+		if is_node_ready():
+			_update_water_radius()
 
 # Multiplier for the water sphere radius. 
 # 1.0 aligns the water level exactly with the planet's base radius.
 @export var water_radius_mult := 1.0:
 	set(val):
-		if !is_node_ready():
-			await ready
 		water_radius_mult = val
-		_update_water_radius()
+		if is_node_ready():
+			_update_water_radius()
 
 @export var water_color := Color(0.059, 0.592, 1.0):
 	set(val):
-		if !is_node_ready():
-			await ready
 		water_color = val
-		_update_water_color()
+		if is_node_ready():
+			_update_water_color()
 
 @export var directional_light : DirectionalLight3D:
 	set(val):
-		if !is_node_ready():
-			await ready
 		directional_light = val
-		_update_water_color()
+		if is_node_ready():
+			_update_water_color()
 
 @export_group("Flora Settings")
 @export var flora_generator : FloraGenerator
@@ -88,15 +63,8 @@ var flora_parent : Node3D
 
 
 func _ready() -> void:
-	# Sync radius with the density generator on ready
-	if "base_radius" in density_generator:
-		density_generator.base_radius = radius
-	elif "planet_size" in density_generator:
-		density_generator.planet_size = radius * 2.0
-	elif "radius" in density_generator:
-		density_generator.radius = radius
-	
-	gravity_source.planet_radius = radius
+	# Apply all initial property values now that the node is ready
+	_update_radius()
 	gravity_source.gravity_radius_multiplier = gravity_radius_multiplier
 	gravity_source.gravity_strength = gravity_strength
 	gravity_source.constant_gravity = constant_gravity
@@ -112,6 +80,25 @@ func _ready() -> void:
 	
 	super._ready()
 
+# Consolidates radius update logic to be called from setter and _ready
+func _update_radius() -> void:
+	# Chunk grid size scales with the planet's radius
+	var num_chunks := int(radius / 10) + 2
+	chunks_amount = Vector3i(num_chunks, num_chunks, num_chunks)
+	var st := -num_chunks * 10
+	start_at = Vector3i(st, st, st)
+	
+	# Sync radius with the density generator, regardless of which version is used
+	if "base_radius" in density_generator:
+		density_generator.base_radius = radius
+	elif "planet_size" in density_generator:
+		density_generator.planet_size = radius * 2.0
+	elif "radius" in density_generator:
+		density_generator.radius = radius
+	
+	gravity_source.planet_radius = radius
+	_update_water_radius()
+
 
 func regenerate() -> void:
 	# Clear old flora immediately when regeneration starts
@@ -121,9 +108,35 @@ func regenerate() -> void:
 	
 	super.regenerate()
 
+# Regenerates only the flora without rebuilding the terrain mesh.
+# Used when flora settings or water level are changed in the UI.
+func regenerate_flora() -> void:
+	if is_instance_valid(flora_parent):
+		for child in flora_parent.get_children():
+			child.queue_free()
+	
+	# Only generate if the terrain is fully generated
+	if flora_generator and flora_parent and is_fully_generated():
+		var seed_val = randi()
+		if "random_seed" in density_generator:
+			seed_val = density_generator.random_seed
+		flora_generator.initialize(seed_val)
+		
+		var water_r = radius * water_radius_mult
+		if !generate_water:
+			water_r = 0.0
+		
+		# Defer generation to ensure physics shapes are registered in the physics server
+		call_deferred("_generate_flora", water_r)
 
-func _finalize_chunk(chunk_coords : Vector3i, chunk_node : MeshInstance3D) -> void:
-	super._finalize_chunk(chunk_coords, chunk_node)
+
+func _finalize_chunk(chunk_coords : Vector3i, chunk_node : MeshInstance3D, gen_id : int) -> void:
+	super._finalize_chunk(chunk_coords, chunk_node, gen_id)
+	
+	# Skip flora generation if this chunk belongs to an outdated generation
+	if gen_id != current_generation_id:
+		return
+		
 	if processed_chunks == total_chunks:
 		gravity_source.generation_done()
 		

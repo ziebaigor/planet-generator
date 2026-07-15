@@ -8,28 +8,23 @@ extends Node3D
 @export var chunk_size := 20
 @export var chunks_amount := Vector3i(5,5,5)
 
-# Setter ensures that when a new density_generator is assigned (like when duplicating
-# for a new planet), the mesh_generator's reference is also updated. This keeps the
-# internal mesh generator in sync with the exported resource.
+# Updates the internal mesh generator's reference and re-initializes the generator 
+# whenever a new density generator is assigned. This ensures the node is fully 
+# synchronized with the exported resource.
 @export var density_generator : DensityGenerator = PlanetDensityGenerator.new():
 	set(val):
 		density_generator = val
-		# Only update mesh_generator if the node is fully ready and mesh_generator exists
-		# This prevents errors during early initialization before _ready() is called
 		if is_node_ready() and mesh_generator != null:
 			mesh_generator.density_generator = density_generator
 			if density_generator:
 				density_generator.initialize()
 
-# Setter ensures that when a new color_generator is assigned (like when duplicating
-# for a new planet), the mesh_generator's reference is also updated. This keeps the
-# internal mesh generator in sync with the exported resource so color gradients
-# are properly applied to the generated mesh.
+# Updates the internal mesh generator's reference whenever a new color generator 
+# is assigned. This ensures the node is fully synchronized with the exported resource 
+# so color gradients are properly applied to the generated mesh.
 @export var color_generator : ColorGenerator = RadialColorGenerator.new():
 	set(val):
 		color_generator = val
-		# Only update mesh_generator if the node is fully ready and mesh_generator exists
-		# This prevents errors during early initialization before _ready() is called
 		if is_node_ready() and mesh_generator != null:
 			mesh_generator.color_generator = color_generator
 
@@ -39,6 +34,14 @@ var mesh_generator := MarchingCubesMeshGeneratorV2.new()
 
 var total_chunks := 0
 var processed_chunks := 0
+
+# Unique ID assigned to each regeneration cycle.
+# Background tasks check this ID to discard their results if a newer generation has started.
+var current_generation_id := 0
+
+# Flag to prevent automatic generation in _ready().
+# Used when creating new planets so properties can be set before the first generation.
+var generation_paused := false
 
 @onready var chunks_parent : Node3D = $Chunks
 
@@ -59,31 +62,46 @@ func _ready() -> void:
 		mesh_material.vertex_color_use_as_albedo = true
 	mesh_generator.color_generator = color_generator
 	
-	regenerate()
+	# Only auto-generate if not paused. 
+	# New planets pause generation until their properties are fully initialized.
+	if not generation_paused:
+		regenerate()
 
 
 func regenerate() -> void:
-	# Re-initialize the density generator before each regeneration
-	# This ensures that any changes to properties like random_seed, noise_frequency,
-	# noise_octaves, etc. are properly applied to the internal noise object.
-	# Without this, changing the seed via UI would not affect the generated terrain
-	# because the noise object was only created once in _ready().
-	if density_generator:
-		density_generator.initialize()
+	# Increment the generation ID to invalidate any currently running background tasks
+	current_generation_id += 1
+	var gen_id = current_generation_id
 	
 	for ch in chunks_parent.get_children():
 		ch.queue_free()
 	
 	chunks.clear()
 	
-	_generate_preview()
-	_generate_mesh()
+	# Create isolated snapshots of generators for this specific generation.
+	# This prevents race conditions where a background task reads a partially 
+	# updated gradient or noise object while the user is changing properties.
+	var gen_density = density_generator.duplicate()
+	var gen_color = null
+	if color_generator:
+		gen_color = color_generator.duplicate()
+	
+	var gen_mesh_generator = MarchingCubesMeshGeneratorV2.new()
+	gen_mesh_generator.iso_level = mesh_generator.iso_level
+	gen_mesh_generator.density_generator = gen_density
+	gen_mesh_generator.color_generator = gen_color
+	
+	# Initialize the duplicated density generator to build its internal noise object
+	gen_density.initialize()
+	
+	_generate_preview(gen_mesh_generator)
+	_generate_mesh(gen_id, gen_mesh_generator)
 
 
 func is_fully_generated() -> bool:
 	return total_chunks == processed_chunks
 
-func _generate_mesh() -> void:
+func _generate_mesh(gen_id: int, gen_mesh_generator: MarchingCubesMeshGeneratorV2) -> void:
 	planet_generation_started.emit()
 	processed_chunks = 0
 	
@@ -95,15 +113,14 @@ func _generate_mesh() -> void:
 	# Completion is tracked by processed_chunks counter in _finalize_chunk
 	for coord in chunk_coords:
 		var start_pos := coord
-		WorkerThreadPool.add_task(generate_chunk_task.bind(start_pos))
+		WorkerThreadPool.add_task(generate_chunk_task.bind(start_pos, chunk_size, gen_id, gen_mesh_generator))
 
-
-func _generate_preview() -> void:
+func _generate_preview(gen_mesh_generator: MarchingCubesMeshGeneratorV2) -> void:
 	# Generate a low-resolution preview mesh for each chunk
 	# This gives instant visual feedback while the full mesh generates
 	# Resolution of 20 means very coarse mesh (1 cube per 20 units)
 	for chunk_pos in make_chunk_coords():
-		var arrays := mesh_generator.generate_mesh_arrays(chunk_pos, chunk_size, 20)
+		var arrays := gen_mesh_generator.generate_mesh_arrays(chunk_pos, chunk_size, 20)
 		_apply_chunk_mesh(chunk_pos, arrays)
 
 
@@ -124,9 +141,13 @@ func make_chunk_coords() -> PackedVector3Array:
 	return chunk_coords
 
 
-func generate_chunk_task(start_pos : Vector3) -> void:
+func generate_chunk_task(start_pos : Vector3, size : int, gen_id : int, gen_mesh_generator: MarchingCubesMeshGeneratorV2) -> void:
+	# Discard the task if it belongs to an outdated generation
+	if gen_id != current_generation_id:
+		return
+		
 	chunk_generation_started.emit.call_deferred(start_pos)
-	var arrays := mesh_generator.generate_mesh_arrays(start_pos, chunk_size)
+	var arrays := gen_mesh_generator.generate_mesh_arrays(start_pos, size)
 	
 	# Check if mesh has valid data
 	# Both vertices AND indices must be non-empty for a valid mesh
@@ -135,10 +156,10 @@ func generate_chunk_task(start_pos : Vector3) -> void:
 	var has_indices := not (arrays[Mesh.ARRAY_INDEX] as PackedInt32Array).is_empty()
 	
 	if has_vertices and has_indices:
-		call_deferred("_apply_chunk_mesh_and_finailize", start_pos, arrays)
+		call_deferred("_apply_chunk_mesh_and_finailize", start_pos, arrays, gen_id)
 	else:
 		# No mesh data (chunk is fully solid or fully empty)
-		call_deferred("_finalize_chunk", start_pos, null)
+		call_deferred("_finalize_chunk", start_pos, null, gen_id)
 
 
 func _apply_chunk_mesh(chunk_coord : Vector3i, arrays : Array) -> MeshInstance3D:
@@ -188,7 +209,11 @@ func _apply_chunk_mesh(chunk_coord : Vector3i, arrays : Array) -> MeshInstance3D
 	return new_chunk
 
 
-func _finalize_chunk(chunk_coords : Vector3i, chunk_node : MeshInstance3D) -> void:
+func _finalize_chunk(chunk_coords : Vector3i, chunk_node : MeshInstance3D, gen_id : int) -> void:
+	# Discard results from outdated generations
+	if gen_id != current_generation_id:
+		return
+		
 	processed_chunks += 1
 	
 	chunk_generation_finished.emit(chunk_coords, chunk_node)
@@ -197,6 +222,10 @@ func _finalize_chunk(chunk_coords : Vector3i, chunk_node : MeshInstance3D) -> vo
 		planet_generation_finished.emit()
 
 
-func _apply_chunk_mesh_and_finailize(chunk_coord : Vector3i, arrays : Array) -> void:
+func _apply_chunk_mesh_and_finailize(chunk_coord : Vector3i, arrays : Array, gen_id : int) -> void:
+	# Discard results from outdated generations
+	if gen_id != current_generation_id:
+		return
+		
 	var new_chunk := _apply_chunk_mesh(chunk_coord, arrays)
-	_finalize_chunk(chunk_coord, new_chunk)
+	_finalize_chunk(chunk_coord, new_chunk, gen_id)

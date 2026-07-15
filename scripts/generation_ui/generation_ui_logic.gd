@@ -39,9 +39,12 @@ func _ready() -> void:
 	# Find and connect input fields
 	_find_field_children_recursively(generation_ui_root, settings_fields)
 	
+	# Disable automatic regeneration for all fields.
+	# Regeneration is handled manually in _input_field_value_changed
+	# to allow different regeneration types (terrain vs flora).
 	for input_field in settings_fields:
+		input_field.causes_regeneration = false
 		input_field.request_fill_me.connect(_fill_input_field)
-		input_field.request_regeneration.connect(_regenerate_planet)
 		input_field.value_changed.connect(_input_field_value_changed)
 	
 	# Refill all fields now that we are ready and all connections are made
@@ -138,20 +141,46 @@ func _input_field_value_changed(property : String, new_value) -> void:
 	if !is_instance_valid(selected_planet):
 		return
 	
+	var needs_terrain_regen := false
+	var needs_flora_regen := false
+	
+	# Properties that update their visuals immediately via setters and don't require
+	# a full mesh or flora regeneration.
+	var no_regen_props = ["gravity_radius_multiplier", "gravity_strength", "constant_gravity", "water_color"]
+	
 	if property in selected_planet:
 		selected_planet.set(property, new_value)
+		# Changing water level or enabling/disabling water requires flora regeneration
+		# to update underwater/surface placement, but does not require terrain mesh regeneration.
+		if property == "generate_water" or property == "water_radius_mult":
+			needs_flora_regen = true
+		elif not property in no_regen_props:
+			needs_terrain_regen = true
 	elif property in selected_planet.density_generator:
 		selected_planet.density_generator.set(property, new_value)
+		needs_terrain_regen = true
 	elif selected_planet.flora_generator != null and property in selected_planet.flora_generator:
 		selected_planet.flora_generator.set(property, new_value)
+		needs_flora_regen = true
 	else:
 		print("GenerationUILogic: Property \'%s\' not found!" % property)
+		return
+	
+	# Trigger the appropriate regeneration type immediately.
+	# The generation ID system in MarchingCubes will automatically discard
+	# any ongoing generation if a new one starts.
+	if needs_terrain_regen:
+		_regenerate_planet()
+	elif needs_flora_regen:
+		selected_planet.regenerate_flora()
 
 func _regenerate_planet() -> void:
 	# Prevent interaction with invalid planets
 	if !is_instance_valid(selected_planet):
 		return
 	
+	# If the planet is fully generated, regenerate immediately.
+	# Otherwise, queue it for regeneration when it finishes.
 	if selected_planet.is_fully_generated():
 		selected_planet.regenerate()
 	elif !needs_to_be_regenerated_queue.has(selected_planet):
@@ -161,17 +190,18 @@ func _regenerate_planet() -> void:
 func _on_planet_fully_generated() -> void:
 	var to_regen : Array[Planet] = []
 	for planet in _get_planets():
-		if needs_to_be_regenerated_queue.has(planet) &&\
-		   planet.is_fully_generated():
+		if needs_to_be_regenerated_queue.has(planet) && planet.is_fully_generated():
 			to_regen.append(planet)
 	
 	for planet in to_regen:
 		planet.regenerate()
 		needs_to_be_regenerated_queue.erase(planet)
 
+# Randomizes the seed, updates the input field, and triggers planet regeneration
 func _on_randomize_seed_button_pressed() -> void:
 	_input_field_value_changed("random_seed", randi())
 	_refill_all_input_fields()
+	# _input_field_value_changed already calls _regenerate_planet
 
 #
 # POSITION INPUT FIELD
@@ -218,11 +248,11 @@ func _on_add_planet_button_pressed() -> void:
 	# Add planet
 	var new_planet := PLANET_SCENE.instantiate()
 	
-	# Ensure each planet has unique resource instances BEFORE adding to tree.
-	# This is critical because when the planet is added to the tree, _ready() is called
-	# which assigns these generators to the internal mesh_generator and calls regenerate().
-	# If we duplicate after adding to tree, the mesh_generator would still reference
-	# the original shared generator, causing all planets to use the same colors/terrain.
+	# Prevent auto-generation in _ready() so we can set properties first.
+	# This ensures the planet generates with the correct settings from the UI.
+	new_planet.generation_paused = true
+	
+	# Ensure each planet has unique resource instances.
 	if new_planet.density_generator:
 		new_planet.density_generator = new_planet.density_generator.duplicate()
 	if new_planet.color_generator:
@@ -230,19 +260,25 @@ func _on_add_planet_button_pressed() -> void:
 	if new_planet.flora_generator:
 		new_planet.flora_generator = new_planet.flora_generator.duplicate()
 	
-	# Set unique properties BEFORE adding to tree.
-	# These values will be used when _ready() calls initialize() on the density_generator
-	# and regenerate() to build the mesh. Setting them before ensures the first generation
-	# uses the correct random seed and color gradient.
-	new_planet.density_generator.random_seed = randi()
-	new_planet.color_generator.color_gradient = make_random_gradient(randi_range(2,6))
-	
 	new_planet.position = _get_default_position_for_planet(num_planets)
 	planets_parent.add_child(new_planet)
 	
-	# Set water_color AFTER adding to tree because the setter uses await ready
-	# to ensure child nodes (like water mesh) are initialized before updating.
+	# Now that the node is in the tree and ready, set properties from the currently selected planet.
+	# This ensures the new planet matches the settings currently visible in the UI.
+	new_planet.radius = selected_planet.radius
+	new_planet.gravity_radius_multiplier = selected_planet.gravity_radius_multiplier
+	new_planet.gravity_strength = selected_planet.gravity_strength
+	new_planet.constant_gravity = selected_planet.constant_gravity
+	new_planet.generate_water = selected_planet.generate_water
+	new_planet.water_radius_mult = selected_planet.water_radius_mult
 	new_planet.water_color = Color(randf(), randf(), randf())
+	
+	new_planet.density_generator.random_seed = randi()
+	new_planet.color_generator.color_gradient = make_random_gradient(randi_range(2,6))
+	
+	# Manually trigger generation with the correct properties
+	new_planet.generation_paused = false
+	new_planet.regenerate()
 	
 	_add_planet_entry_for_planet(new_planet)
 	_set_selected_planet(new_planet)
