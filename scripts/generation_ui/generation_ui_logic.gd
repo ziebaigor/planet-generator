@@ -14,6 +14,10 @@ const PLANET_SELECT_ENTRY := preload("res://scripts/generation_ui/planet_select_
 @export var planets_parent : Node3D
 @export var ui_planet_entries_parent : Control
 
+## Node controlling the sun, its orbit and the skybox.
+## Properties of this node can be edited through the Sun Settings UI fields.
+@export var sun_system : SunSystem
+
 @export var selected_planet : Planet:
 	set(val):
 		selected_planet = val
@@ -129,6 +133,10 @@ func _fill_input_field(field, property : String) -> void:
 	elif selected_planet.flora_generator != null and property in selected_planet.flora_generator:
 		value = selected_planet.flora_generator.get(property)
 		found = true
+	# Check sun system properties
+	elif sun_system != null and property in sun_system:
+		value = sun_system.get(property)
+		found = true
 	
 	if !found:
 		print("GenerationUILogic: Property \'%s\' not found!" % property)
@@ -162,6 +170,10 @@ func _input_field_value_changed(property : String, new_value) -> void:
 	elif selected_planet.flora_generator != null and property in selected_planet.flora_generator:
 		selected_planet.flora_generator.set(property, new_value)
 		needs_flora_regen = true
+	elif sun_system != null and property in sun_system:
+		# Sun settings are applied instantly by the sun system itself
+		# and never cause planet regeneration.
+		sun_system.set(property, new_value)
 	else:
 		print("GenerationUILogic: Property \'%s\' not found!" % property)
 		return
@@ -272,6 +284,9 @@ func _on_add_planet_button_pressed() -> void:
 	new_planet.generate_water = selected_planet.generate_water
 	new_planet.water_radius_mult = selected_planet.water_radius_mult
 	new_planet.water_color = Color(randf(), randf(), randf())
+	
+	# Inherit the sun reference so the water shader can align with the sunlight
+	new_planet.directional_light = selected_planet.directional_light
 	
 	new_planet.density_generator.random_seed = randi()
 	new_planet.color_generator.color_gradient = make_random_gradient(randi_range(2,6))

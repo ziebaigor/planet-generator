@@ -16,6 +16,7 @@ uniform float wave_scale = 0.2;
 // Specular
 uniform float normal_scale = 0.25;
 uniform float specular_exponent = 32.0;
+// Direction from the water surface towards the sun, in world space
 uniform vec3 specular_light_dir = vec3(0.3, 0.8, 0.2);
 
 void vertex() {
@@ -64,7 +65,11 @@ void fragment() {
 	
 	vec3 final_normal = normalize(NORMAL + wave_normal_sample * normal_scale);
 	
-	vec3 half_vector = normalize(normalize(specular_light_dir) + VIEW);
+	// The light direction is given in world space, while NORMAL and VIEW are
+	// in view space, so it has to be transformed before lighting calculations
+	vec3 light_dir = normalize((VIEW_MATRIX * vec4(specular_light_dir, 0.0)).xyz);
+	
+	vec3 half_vector = normalize(light_dir + VIEW);
 	float spec = pow(max(dot(final_normal, half_vector), 0.0), specular_exponent);
 	
 	spec = smoothstep(0.0, 1.0, spec);

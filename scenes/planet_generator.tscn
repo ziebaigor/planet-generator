@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://cugq6svifa7tc"]
+[gd_scene load_steps=24 format=3 uid="uid://cugq6svifa7tc"]
 
 [ext_resource type="PackedScene" uid="uid://cma760537lno2" path="res://scripts/planet/planet.tscn" id="1_57qqk"]
 [ext_resource type="Script" uid="uid://dsi223361ju3h" path="res://scripts/marching_cubes/mesh_generator/color_generators/radial_color_generator.gd" id="3_j0l1l"]
@@ -11,6 +11,8 @@
 [ext_resource type="PackedScene" uid="uid://ds4je1vri7xoc" path="res://scripts/generation_ui/settings_fields/planet_settings_checkbutton.tscn" id="9_ipcg4"]
 [ext_resource type="PackedScene" uid="uid://ueefup2fgaxk" path="res://scripts/generation_ui/settings_fields/planet_settings_color_picker.tscn" id="10_fcntt"]
 [ext_resource type="Script" path="res://scripts/generation_ui/settings_fields/planet_settings_dropdown.gd" id="100_drop"]
+[ext_resource type="Script" path="res://scripts/sun/sun_system.gd" id="200_sun"]
+[ext_resource type="Shader" path="res://scripts/sky/skybox.gdshader" id="201_sky"]
 
 [sub_resource type="Resource" id="Resource_jcijy"]
 script = ExtResource("3_opjcv")
@@ -41,33 +43,60 @@ font_color = Color(1, 0.100000024, 0.100000024, 1)
 [sub_resource type="GradientTexture1D" id="GradientTexture1D_pdtbk"]
 gradient = SubResource("Gradient_fcntt")
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sky"]
+shader = ExtResource("201_sky")
+shader_parameter/sun_direction = Vector3(0, 1, 0)
+shader_parameter/sun_color = Color(1, 0.95, 0.85, 1)
+shader_parameter/sun_angular_size = 0.066
+shader_parameter/sun_intensity = 3.0
+shader_parameter/sun_halo_strength = 0.25
+shader_parameter/star_brightness = 1.0
+shader_parameter/star_twinkle = 0.5
+shader_parameter/space_color = Color(0, 0, 0, 1)
+
+[sub_resource type="Sky" id="Sky_lx2bo"]
+sky_material = SubResource("ShaderMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_lx2bo"]
+background_mode = 2
+sky = SubResource("Sky_lx2bo")
+ambient_light_source = 2
+ambient_light_color = Color(0.6, 0.7, 0.9, 1)
+ambient_light_energy = 0.05
+
 [node name="PlanetGenerator" type="Node3D" unique_id=1789598939]
 
 [node name="WORLD" type="Node3D" parent="." unique_id=1746338150]
 transform = Transform3D(1, -2.9802322e-08, 0, 0, 1.0000001, 0, 7.450581e-09, 0, 1.0000001, 6.556511e-07, -3.8146973e-06, -7.6293945e-06)
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="WORLD" unique_id=248660028]
-transform = Transform3D(0.98539007, 0.07314974, -0.1538035, 0.17031267, -0.4232276, 0.8898717, -7.3417272e-09, -0.90306544, -0.42950264, 1.03645505e-07, 25.477766, 44.38509)
-light_indirect_energy = 3.0
-light_angular_distance = 1.0
+[node name="WorldEnvironment" type="WorldEnvironment" parent="WORLD" unique_id=881000001]
+environment = SubResource("Environment_lx2bo")
 
-[node name="AmbientLight3D" type="DirectionalLight3D" parent="WORLD" unique_id=1652012005]
+[node name="FillLight" type="DirectionalLight3D" parent="WORLD" unique_id=1652012005]
 transform = Transform3D(0.98510337, -0.07385871, 0.15529418, 0.17196336, 0.42310444, -0.88961285, -1.6654777e-08, 0.9030655, 0.4295026, 1.03645505e-07, 25.477766, 44.38509)
 light_color = Color(0.5112, 0.69012, 0.71, 1)
 light_energy = 0.304
 light_angular_distance = 1.0
 sky_mode = 1
 
+[node name="SunSystem" type="Node3D" parent="WORLD" unique_id=881000002 node_paths=PackedStringArray("world_environment")]
+script = ExtResource("200_sun")
+world_environment = NodePath("../WorldEnvironment")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="WORLD/SunSystem" unique_id=881000003]
+light_indirect_energy = 3.0
+light_angular_distance = 1.0
+
 [node name="PLANETS" type="Node3D" parent="WORLD" unique_id=1622127944]
 
 [node name="DefaultPlanet" parent="WORLD/PLANETS" unique_id=739817206 node_paths=PackedStringArray("directional_light") instance=ExtResource("1_57qqk")]
 transform = Transform3D(1, 2.9802319e-08, 0, 0, 0.9999999, 0, -7.4505797e-09, -2.2204455e-16, 0.9999999, 0, 0, 0)
 gravity_strength = 25.0
-directional_light = NodePath("../../DirectionalLight3D")
+directional_light = NodePath("../../SunSystem/DirectionalLight3D")
 density_generator = SubResource("Resource_jcijy")
 color_generator = SubResource("Resource_ipcg4")
 
-[node name="UI" type="CanvasLayer" parent="." unique_id=252421876 node_paths=PackedStringArray("world_root", "generation_ui_root", "generation_cam", "cam_root", "planets_parent", "ui_planet_entries_parent", "selected_planet")]
+[node name="UI" type="CanvasLayer" parent="." unique_id=252421876 node_paths=PackedStringArray("world_root", "generation_ui_root", "generation_cam", "cam_root", "planets_parent", "ui_planet_entries_parent", "selected_planet", "sun_system")]
 script = ExtResource("5_j0l1l")
 world_root = NodePath("../WORLD")
 generation_ui_root = NodePath("GenerationUI")
@@ -76,6 +105,7 @@ cam_root = NodePath("GenerationUI/GenerationCamViewport/SubViewport/CameraMoveme
 planets_parent = NodePath("../WORLD/PLANETS")
 ui_planet_entries_parent = NodePath("GenerationUI/Panel/MarginContainer/VBoxContainer/SELECT_PLANET/MarginContainer/VBoxContainer/ScrollContainer/PlanetSelectEntriesParent")
 selected_planet = NodePath("../WORLD/PLANETS/DefaultPlanet")
+sun_system = NodePath("../WORLD/SunSystem")
 
 [node name="Label" type="Label" parent="UI" unique_id=1269764974]
 offset_left = 8.0
@@ -621,6 +651,107 @@ text = "Random Rotation"
 layout_mode = 2
 size_flags_horizontal = 10
 connected_property = "random_rotation_y"
+
+[node name="HSeparator6" type="HSeparator" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=881000010]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Label7" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=881000011]
+layout_mode = 2
+text = "Sun Settings"
+
+[node name="SunCycleEnabled" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=881000012]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/SunCycleEnabled" unique_id=881000013]
+layout_mode = 2
+text = "Cycle Enabled"
+
+[node name="CheckButton" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/SunCycleEnabled" unique_id=881000014 instance=ExtResource("9_ipcg4")]
+layout_mode = 2
+size_flags_horizontal = 10
+connected_property = "cycle_enabled"
+
+[node name="SunDayLength" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=881000015]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/SunDayLength" unique_id=881000016]
+layout_mode = 2
+text = "Day Length (s)"
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/SunDayLength" unique_id=881000017 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+connected_property = "day_length"
+
+[node name="SunOrbitDistance" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=881000018]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/SunOrbitDistance" unique_id=881000019]
+layout_mode = 2
+text = "Orbit Distance"
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/SunOrbitDistance" unique_id=881000020 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+connected_property = "orbit_distance"
+
+[node name="SunOrbitInclination" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=881000021]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/SunOrbitInclination" unique_id=881000022]
+layout_mode = 2
+text = "Orbit Tilt"
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/SunOrbitInclination" unique_id=881000023 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+connected_property = "orbit_inclination"
+
+[node name="SunSize" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=881000030]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/SunSize" unique_id=881000031]
+layout_mode = 2
+text = "Sun Size"
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/SunSize" unique_id=881000032 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+connected_property = "sun_size"
+
+[node name="SunBrightness" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=881000033]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/SunBrightness" unique_id=881000034]
+layout_mode = 2
+text = "Sun Brightness"
+
+[node name="InputField" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/SunBrightness" unique_id=881000035 instance=ExtResource("6_aij2p")]
+layout_mode = 2
+connected_property = "sun_brightness"
+
+[node name="SunColor" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=881000036]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/SunColor" unique_id=881000037]
+layout_mode = 2
+text = "Sun Color"
+
+[node name="ColorPicker" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer/SunColor" unique_id=881000038 instance=ExtResource("10_fcntt")]
+layout_mode = 2
+size_flags_horizontal = 10
+connected_property = "sun_color"
 
 [node name="ExploreButton" type="Button" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer" unique_id=1029820388]
 layout_mode = 2

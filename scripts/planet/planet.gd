@@ -61,6 +61,10 @@ extends MarchingCubes
 
 var flora_parent : Node3D
 
+# Duplicated water material cached after _update_water_color,
+# used to update the light direction without creating new copies.
+var _water_material : ShaderMaterial
+
 
 func _ready() -> void:
 	# Apply all initial property values now that the node is ready
@@ -79,6 +83,11 @@ func _ready() -> void:
 		add_child(flora_parent)
 	
 	super._ready()
+
+
+func _process(_delta: float) -> void:
+	# Keep the water reflections aligned with the current sun position
+	_update_water_light_dir()
 
 # Consolidates radius update logic to be called from setter and _ready
 func _update_radius() -> void:
@@ -186,9 +195,17 @@ func _update_water_color() -> void:
 	mat.set_shader_parameter("shallow_color", water_color)
 	mat.set_shader_parameter("deep_color", deep_color)
 	
-	if directional_light:
-		var sun_dir = -directional_light.global_transform.basis.z.normalized()
-		mat.set_shader_parameter("light_dir", sun_dir)
+	# Cache the duplicated material so the light direction can be updated
+	# every frame without creating new copies
+	_water_material = mat
+	_update_water_light_dir()
+
+# Updates the water shader with the current direction towards the sun,
+# so the specular reflections follow the sun across the sky.
+func _update_water_light_dir() -> void:
+	if directional_light and _water_material:
+		var sun_dir = directional_light.global_transform.basis.z.normalized()
+		_water_material.set_shader_parameter("specular_light_dir", sun_dir)
 
 
 func _make_deep_water_color(shallow: Color, value_mul := 0.6, hue_shift := -0.04, saturation_mul := 1.35) -> Color:
