@@ -3,6 +3,12 @@ extends Area3D
 var water_tint_color := Color(0.059, 0.592, 1.0)
 
 
+func _ready() -> void:
+	# Add this area to the "water" group so the player's water detector
+	# can recognise it as a water volume and trigger splash/wading sounds.
+	add_to_group("water")
+
+
 func set_enabled(val : bool) -> void:
 	monitorable = val
 	monitoring = val

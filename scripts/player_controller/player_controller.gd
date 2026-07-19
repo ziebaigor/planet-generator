@@ -32,6 +32,18 @@ extends CharacterBody3D
 @export var gravity_set_speed  : float = 10.0
 @export var rotation_set_speed : float = 8.0
 
+# Water splash sound variants — picked randomly when the player gently enters water.
+# The walking and fall sounds are assigned directly in the scene file (.tscn).
+var _water_splash_streams : Array[AudioStreamWAV] = [
+	preload("res://res/sounds/water_splash_1.wav"),
+	preload("res://res/sounds/water_splash_2.wav"),
+	preload("res://res/sounds/water_splash_3.wav"),
+]
+
+# Fall speed above which a landing is considered a "fall from height" and
+# triggers the dedicated fall splash/impact sound instead of nothing.
+const FALL_SOUND_THRESHOLD : float = 10.0
+
 var gravity_sources : Array[Node3D] = []
 var noclip          : bool = false
 var mag_boots       : bool = false
@@ -45,8 +57,33 @@ var _camera_y_default        : float = 0.0
 var _gravity_vector : Vector3 = Vector3.ZERO
 var _camera_pitch   : float = 0.0
 
+# Water state tracking.
+# _in_water is true while the player body overlaps any water area.
+# _was_in_water stores the previous frame state to detect moment of entry.
+# _water_area_count tracks how many water areas currently overlap the player
+# so that leaving one water area does not clear the state if another still overlaps.
+var _in_water        : bool = false
+var _was_in_water    : bool = false
+var _water_area_count: int = 0
+
+# Base pitch scales read from the AudioStreamPlayer nodes in _ready().
+# When sprinting, the code multiplies these values by the ratio of
+# sprint_speed to walk_speed so the footsteps speed up proportionally.
+var _grass_pitch_base : float = 1.0
+var _water_pitch_base : float = 1.0
+
 @onready var camera         : Camera3D = $Camera3D
 @onready var floor_detector : ShapeCast3D = $FloorDetector
+
+# Audio players for each sound category.
+# Walking players use stream_paused to pause/resume playback so the sound
+# continues from where it stopped when the player moves again.
+# The water splash player's stream is swapped for a random variant on each entry.
+@onready var walking_grass_player    : AudioStreamPlayer = $WalkingGrassSound
+@onready var walking_water_player    : AudioStreamPlayer = $WalkingWaterSound
+@onready var water_splash_player     : AudioStreamPlayer = $WaterSplashSound
+@onready var grass_fall_player       : AudioStreamPlayer = $GrassFallSound
+@onready var water_big_splash_player : AudioStreamPlayer = $WaterBigSplashSound
 
 
 func _ready() -> void:
@@ -58,6 +95,17 @@ func _ready() -> void:
 	floor_stop_on_slope = true
 	# Set detecting floor that are up to 60 degrees steep
 	floor_max_angle = deg_to_rad(60.0)
+	
+	# Store the base pitch scales of the walking sounds as set in the scene.
+	# These values are used to calculate the faster pitch when the player sprints.
+	_grass_pitch_base = walking_grass_player.pitch_scale
+	_water_pitch_base = walking_water_player.pitch_scale
+	
+	# Manually loop walking sounds by restarting them when playback finishes.
+	# The imported WAVs default to no loop, so we handle looping in code
+	# by connecting to the finished signal and replaying if still walking.
+	walking_grass_player.finished.connect(_on_walking_grass_finished)
+	walking_water_player.finished.connect(_on_walking_water_finished)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -93,6 +141,8 @@ func _physics_process(delta: float) -> void:
 	if noclip:
 		# Apply noclip movement
 		_apply_noclip(delta)
+		# Stop any walking sounds while flying
+		_stop_walking_sounds()
 		# Skip the rest
 		return
 
@@ -112,6 +162,8 @@ func _physics_process(delta: float) -> void:
 	if fov_enabled: _process_fov(delta)
 	# Move the player and process collisions
 	move_and_slide()
+	# Update looping walking sounds based on current movement and water state
+	_update_walking_sound()
 
 
 func add_gravity_source(source: Node3D) -> void:
@@ -244,8 +296,24 @@ func _apply_movement(delta: float) -> void:
 		var impact_multiplier = clamp(_fall_speed / 10.0, 0.5, 2.5)
 		# Set target camera offset based on impact force
 		_target_camera_y_offset = -land_offset * impact_multiplier
+		
+		# Play hard landing sound when hitting the ground from a significant height.
+		# Only triggered when not in water (water has its own splash sound).
+		if _fall_speed > FALL_SOUND_THRESHOLD and not _in_water:
+			grass_fall_player.play()
+	
+	# Detect the moment the player enters water.
+	# A high-speed entry plays the big splash; a gentle entry picks a random small splash.
+	if _in_water and not _was_in_water:
+		if _fall_speed > FALL_SOUND_THRESHOLD:
+			water_big_splash_player.play()
+		else:
+			var random_index := randi() % _water_splash_streams.size()
+			water_splash_player.stream = _water_splash_streams[random_index]
+			water_splash_player.play()
 	
 	# Save state for next physics frame
+	_was_in_water = _in_water
 	_was_on_floor = on_ground
 	_fall_speed = velocity.dot(gravity_dir)
 	
@@ -326,3 +394,88 @@ func _apply_noclip(delta: float) -> void:
 
 	# Set new position without collisions
 	global_position += velocity * delta
+
+
+# Updates the looping walking sounds based on whether the player is moving,
+# on the ground, and/or submerged. Called every physics frame after movement.
+#
+# Pause/resume: stream_paused is used instead of stop/play so the sound
+# resumes from the exact position where it was paused when the player
+# starts walking again.
+#
+# Looping: the finished signal is connected in _ready() to restart
+# playback when the clip ends, as long as the player is still moving.
+#
+# Sprint: both grass and water walking sounds are sped up by the same
+# ratio of sprint_speed / walk_speed. The base pitch comes from the
+# pitch_scale property on each AudioStreamPlayer node in the scene.
+func _update_walking_sound() -> void:
+	var input_dir := Input.get_vector("left", "right", "forward", "backward")
+	var is_moving := input_dir.length_squared() > 0.01
+	var on_ground := is_on_floor()
+	var is_sprinting := Input.is_action_pressed("sprint")
+	
+	# Grass walking: moving on solid ground while not submerged.
+	# Start playback the first time, then toggle pause to resume in place.
+	if is_moving and on_ground and not _in_water:
+		if not walking_grass_player.playing:
+			walking_grass_player.play()
+		walking_grass_player.stream_paused = false
+	else:
+		walking_grass_player.stream_paused = true
+	
+	# Water walking: moving while submerged (wading/swimming).
+	# Same pause/resume behavior as grass walking.
+	if is_moving and _in_water:
+		if not walking_water_player.playing:
+			walking_water_player.play()
+		walking_water_player.stream_paused = false
+	else:
+		walking_water_player.stream_paused = true
+	
+	# When sprinting, speed up both walking sounds proportionally to how
+	# much faster the player moves compared to normal walking.
+	# The base pitch for each sound comes from the pitch_scale property
+	# on the corresponding AudioStreamPlayer node in the scene.
+	var pitch_multiplier := sprint_speed / walk_speed if is_sprinting else 1.0
+	walking_grass_player.pitch_scale = _grass_pitch_base * pitch_multiplier
+	walking_water_player.pitch_scale = _water_pitch_base * pitch_multiplier
+
+
+# Called when the grass walking sound reaches the end of the clip.
+# If the player is still walking (not paused), restart playback to loop seamlessly.
+func _on_walking_grass_finished() -> void:
+	if not walking_grass_player.stream_paused:
+		walking_grass_player.play()
+
+
+# Called when the water walking sound reaches the end of the clip.
+# If the player is still wading (not paused), restart playback to loop seamlessly.
+func _on_walking_water_finished() -> void:
+	if not walking_water_player.stream_paused:
+		walking_water_player.play()
+
+
+# Stops both looping walking sounds completely.
+# Used when entering noclip mode so that walking audio does not linger.
+func _stop_walking_sounds() -> void:
+	walking_grass_player.stop()
+	walking_water_player.stop()
+
+
+# Called by the WaterDetector Area3D when the player body enters a water volume.
+# Only areas in the "water" group are counted.
+func _on_water_detector_area_entered(area: Area3D) -> void:
+	if area.is_in_group("water"):
+		_water_area_count += 1
+		_in_water = true
+
+
+# Called by the WaterDetector Area3D when the player body leaves a water volume.
+# The player is considered out of water only when no water areas remain overlapping.
+func _on_water_detector_area_exited(area: Area3D) -> void:
+	if area.is_in_group("water"):
+		_water_area_count -= 1
+		if _water_area_count <= 0:
+			_water_area_count = 0
+			_in_water = false

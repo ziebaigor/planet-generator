@@ -1,6 +1,10 @@
 [gd_scene format=3 uid="uid://c02samnxbv0v1"]
 
 [ext_resource type="Script" uid="uid://bqet5vcqayxhp" path="res://scripts/player_controller/player_controller.gd" id="1_0bh36"]
+[ext_resource type="AudioStream" uid="uid://bfdl56be3dhk1" path="res://res/sounds/water_big_splash.wav" id="snd_big"]
+[ext_resource type="AudioStream" uid="uid://dv8f5abjp0q1" path="res://res/sounds/grass_fall.wav" id="snd_fall"]
+[ext_resource type="AudioStream" uid="uid://d2p2p83kuiua2" path="res://res/sounds/walking_grass.wav" id="snd_grass"]
+[ext_resource type="AudioStream" uid="uid://dfliapkepxwyj" path="res://res/sounds/walking_water.wav" id="snd_water"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_wp2so"]
 
@@ -19,6 +23,8 @@ albedo_color = Color(0.8945246, 0, 0.26487797, 0.46666667)
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_0bh36"]
 radius = 0.8
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_water"]
 
 [node name="PlayerController" type="CharacterBody3D" unique_id=64172110]
 script = ExtResource("1_0bh36")
@@ -47,3 +53,28 @@ surface_material_override/0 = SubResource("StandardMaterial3D_0bh36")
 [node name="FloorDetector" type="ShapeCast3D" parent="." unique_id=487594997]
 shape = SubResource("SphereShape3D_0bh36")
 target_position = Vector3(0, -0.5, 0)
+
+[node name="WalkingGrassSound" type="AudioStreamPlayer" parent="." unique_id=1351970312]
+stream = ExtResource("snd_grass")
+volume_db = 6.0
+pitch_scale = 1.3
+
+[node name="WalkingWaterSound" type="AudioStreamPlayer" parent="." unique_id=2063566932]
+stream = ExtResource("snd_water")
+
+[node name="WaterSplashSound" type="AudioStreamPlayer" parent="." unique_id=520873404]
+
+[node name="GrassFallSound" type="AudioStreamPlayer" parent="." unique_id=1664719519]
+stream = ExtResource("snd_fall")
+
+[node name="WaterBigSplashSound" type="AudioStreamPlayer" parent="." unique_id=165496973]
+stream = ExtResource("snd_big")
+volume_db = -0.5
+
+[node name="WaterDetector" type="Area3D" parent="." unique_id=319326038]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WaterDetector" unique_id=1499603889]
+shape = SubResource("CapsuleShape3D_water")
+
+[connection signal="area_entered" from="WaterDetector" to="." method="_on_water_detector_area_entered"]
+[connection signal="area_exited" from="WaterDetector" to="." method="_on_water_detector_area_exited"]
