@@ -532,7 +532,7 @@ layout_mode = 2
 size_flags_horizontal = 10
 script = ExtResource("100_drop")
 connected_property = "distribution_mode"
-options = {"RANDOM":0,"CLUSTERED":1}
+options = {"Random":0,"Clustered":1}
 
 [node name="FloraDensity" type="HBoxContainer" parent="UI/GenerationUI/Panel/MarginContainer/VBoxContainer/PLANET_SETTINGS/MarginContainer/PlanetSettingsScroll/VBoxContainer" unique_id=900000003]
 custom_minimum_size = Vector2(200, 0)

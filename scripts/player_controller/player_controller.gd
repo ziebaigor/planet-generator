@@ -11,6 +11,7 @@ extends CharacterBody3D
 @export var jump_velocity   : float = 12.0
 @export var air_multiplier  : float = 0.2
 @export var noclip_speed    : float = 25.0
+@export var noclip_roll_speed : float = 1
 @export var mag_boots_force : float = 20.0
 
 @export_group("Camera Offset Effect")
@@ -305,6 +306,23 @@ func _apply_noclip(delta: float) -> void:
 	else:
 		# Smooth deceleration towards Vector3.ZERO by interpolation
 		velocity = velocity.lerp(Vector3.ZERO, deceleration * delta)
+
+	# Roll rotation input using Q and E keys.
+	# Q rolls left (counterclockwise when looking forward),
+	# E rolls right (clockwise when looking forward).
+	# This lets the player level themselves while flying around freely.
+	var roll_input := 0.0
+	if Input.is_action_pressed("roll_right"):
+		roll_input -= 1.0
+	if Input.is_action_pressed("roll_left"):
+		roll_input += 1.0
+	
+	# Apply roll rotation around the camera's forward axis.
+	# The camera's basis Z points backward, so a positive angle
+	# produces a clockwise roll when viewed from the player's perspective.
+	if abs(roll_input) > 0.01:
+		var forward_axis := camera.global_transform.basis.z.normalized()
+		rotate(forward_axis, roll_input * noclip_roll_speed * delta)
 
 	# Set new position without collisions
 	global_position += velocity * delta
